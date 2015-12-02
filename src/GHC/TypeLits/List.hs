@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE DataKinds #-}
@@ -10,13 +11,13 @@
 
 module GHC.TypeLits.List (
     KnownNats
-  , SomeNats
+  , SomeNats(..)
   , natsVal
   , someNatsVal
   , someNatsVal'
   , reifyNats
   , KnownSymbols
-  , SomeSymbols
+  , SomeSymbols(..)
   , symbolsVal
   , someSymbolsVal
   , reifySymbols
