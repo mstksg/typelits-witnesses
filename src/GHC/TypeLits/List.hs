@@ -7,81 +7,94 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module GHC.TypeLits.List (
-    KnownNats
+    KnownNats(..)
   , SomeNats(..)
-  , natsVal
+  , NatList(..)
   , someNatsVal
   , someNatsVal'
   , reifyNats
-  , KnownSymbols
+  , KnownSymbols(..)
   , SomeSymbols(..)
-  , symbolsVal
   , someSymbolsVal
   , reifySymbols
   ) where
 
-import GHC.TypeLits
-import GHC.Exts (Constraint)
 import Data.Proxy
 import Data.Reflection
-import Data.Type.Product
+import GHC.Exts        (Constraint)
+import GHC.TypeLits
 
-type family KnownNats (ns :: [Nat]) :: Constraint where
-    KnownNats '[]       = ()
-    KnownNats (n ': ns) = (KnownNat n, KnownNats ns)
+data NatList :: [Nat] -> * where
+    ØNL   :: NatList '[]
+    (:<#) :: (KnownNat n, KnownNats ns) => Proxy n -> NatList ns -> NatList (n ': ns)
+
+class KnownNats (ns :: [Nat]) where
+    natsVal  :: p ns -> [Integer]
+    natsList :: NatList ns
+
+instance KnownNats '[] where
+    natsVal  _ = []
+    natsList   = ØNL
+
+instance (KnownNat n, KnownNats ns) => KnownNats (n ': ns) where
+    natsVal  _ = natVal (Proxy :: Proxy n) : natsVal (Proxy :: Proxy ns)
+    natsList   = Proxy :<# natsList
 
 data SomeNats :: * where
-    SomeNats :: KnownNats ns => Prod Proxy ns -> SomeNats
-
-natsVal :: KnownNats ns => Prod proxy ns -> [Integer]
-natsVal p = case p of
-              Ø       -> []
-              n :< ns -> natVal n : natsVal ns
+    SomeNats :: KnownNats ns => NatList ns -> SomeNats
 
 someNatsVal :: [Integer] -> Maybe SomeNats
-someNatsVal []     = Just (SomeNats Ø)
+someNatsVal []     = Just (SomeNats ØNL)
 someNatsVal (n:ns) = do
     SomeNat  m  <- someNatVal n
     SomeNats ms <- someNatsVal ns
-    return $ SomeNats (m :< ms)
+    return $ SomeNats (m :<# ms)
+
+reifyNats :: [Integer] -> (forall ns. KnownNats ns => NatList ns -> r) -> r
+reifyNats []     f = f ØNL
+reifyNats (n:ns) f = reifyNat n $ \m ->
+                       reifyNats ns $ \ms ->
+                         f (m :<# ms)
 
 someNatsVal' :: [Integer] -> SomeNats
 someNatsVal' ns = reifyNats ns SomeNats
 
-reifyNats :: [Integer] -> (forall ns. KnownNats ns => Prod Proxy ns -> r) -> r
-reifyNats []     f = f Ø
-reifyNats (n:ns) f = reifyNat n $ \m ->
-                       reifyNats ns $ \ms ->
-                         f (m :< ms)
+data SymbolList :: [Symbol] -> * where
+    ØSL   :: SymbolList '[]
+    (:<$) :: (KnownSymbol n, KnownSymbols ns) => Proxy n -> SymbolList ns -> SymbolList (n ': ns)
 
+class KnownSymbols (ns :: [Symbol]) where
+    symbolsVal  :: p ns -> [String]
+    symbolsProd :: SymbolList ns
 
-type family KnownSymbols (ns :: [Symbol]) :: Constraint where
-    KnownSymbols '[]       = ()
-    KnownSymbols (n ': ns) = (KnownSymbol n, KnownSymbols ns)
+instance KnownSymbols '[] where
+    symbolsVal  _ = []
+    symbolsProd    = ØSL
+
+instance (KnownSymbol n, KnownSymbols ns) => KnownSymbols (n ': ns) where
+    symbolsVal  _ = symbolVal (Proxy :: Proxy n) : symbolsVal (Proxy :: Proxy ns)
+    symbolsProd   = Proxy :<$ symbolsProd
 
 data SomeSymbols :: * where
-    SomeSymbols :: KnownSymbols ns => Prod Proxy ns -> SomeSymbols
-
-symbolsVal :: KnownSymbols ns => Prod proxy ns -> [String]
-symbolsVal p = case p of
-                 Ø       -> []
-                 n :< ns -> symbolVal n : symbolsVal ns
+    SomeSymbols :: KnownSymbols ns => SymbolList ns -> SomeSymbols
 
 someSymbolsVal :: [String] -> SomeSymbols
-someSymbolsVal []     = SomeSymbols Ø
+someSymbolsVal []     = SomeSymbols ØSL
 someSymbolsVal (n:ns) =
     case someSymbolVal n of
       SomeSymbol m ->
         case someSymbolsVal ns of
           SomeSymbols ms ->
-            SomeSymbols (m :< ms)
+            SomeSymbols (m :<$ ms)
 
-reifySymbols :: [String] -> (forall ns. KnownSymbols ns => Prod Proxy ns -> r) -> r
-reifySymbols []     f = f Ø
+reifySymbols :: [String] -> (forall ns. KnownSymbols ns => SymbolList ns -> r) -> r
+reifySymbols []     f = f ØSL
 reifySymbols (n:ns) f = reifySymbol n $ \m ->
                           reifySymbols ns $ \ms ->
-                            f (m :< ms)
+                            f (m :<$ ms)
 
