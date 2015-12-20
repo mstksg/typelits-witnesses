@@ -5,27 +5,27 @@ name:                typelits-witnesses
 version:             0.1.0.0
 synopsis:            Various forms of existential witnesses and singletons for
                      operations on GHC TypeLits
-description:         Provides witnesses for @KnownNat@ and @KnownSymbol@
+description:         Provides witnesses for 'KnownNat' and 'KnownSymbol'
                      instances for various operations on GHC TypeLits - in
                      particular, the arithmetic operations defined in
                      "GHC.TypeLits", and also for type-level lists of
-                     @KnownNat@ and @KnownSymbol@ instances.
+                     'KnownNat' and 'KnownSymbol' instances.
                      
                      This is useful for situations where you have
-                     '@KnownNat@ n', and you want to prove to GHC
-                     '@KnownNat@ (n + 3)', or '@KnownNat@ (2*n + 4)'.
+                     @'KnownNat' n@, and you want to prove to GHC
+                     @'KnownNat' (n + 3)@, or @'KnownNat' (2*n + 4)@.
                      
                      It's also useful for when you want to work with type
-                     level lists of @KnownNat@ or @KnownSymbol@ instances and
+                     level lists of 'KnownNat' or 'KnownSymbol' instances and
                      singletons for traversing them, and be able to apply
-                     analogies of @natVal@ and @symbolVal@ to lists with
-                     analogies for @SomeNat@ and @SomeSymbol@.
+                     analogies of 'natVal' and 'symbolVal' to lists with
+                     analogies for 'SomeNat' and 'SomeSymbol'.
 homepage:            https://github.com/mstksg/typelits-witnesses
 license:             MIT
 license-file:        LICENSE
 author:              Justin Le
 maintainer:          justin@jle.im
-copyright:           2015 Justin Le
+copyright:           (c) 2015 Justin Le
 category:            Data
 build-type:          Simple
 -- extra-source-files:  
