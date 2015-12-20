@@ -11,6 +11,17 @@
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 
+-- |
+-- Module      : GHC.TypeLits.List
+-- Description : Typeclasses, singletons, and reifiers for type-level lists
+--               of 'Nat's and 'Symbol's.
+-- Copyright   : (c) Justin Le 2015
+-- License     : MIT
+-- Maintainer  : justin@jle.im
+-- Stability   : unstable
+-- Portability : non-portable
+--
+
 module GHC.TypeLits.List (
   -- * @KnownNats@
     KnownNats(..)
@@ -34,7 +45,6 @@ module GHC.TypeLits.List (
 
 import Data.Proxy
 import Data.Reflection
-import GHC.Exts        (Constraint)
 import GHC.TypeLits
 import Data.Functor.Identity
 
@@ -87,6 +97,8 @@ deriving instance Show (NatList ns)
 -- a 'NatList', each with the corresponding 'KnownNat' instance available.
 -- Gives the the ability to "change" the represented natural number to
 -- a new one, in a 'SomeNat'.
+--
+-- Can be considered a form of a @Traversal' 'SomeNat' 'SomeNats'@.
 traverseNatList :: forall f ns. Applicative f
                 => (forall n. KnownNat n => Proxy n -> f SomeNat)
                 -> NatList ns
@@ -97,7 +109,7 @@ traverseNatList f = go
     go nl = case nl of
               ØNL       -> pure $ SomeNats ØNL
               p :<# nl' -> merge <$> f p <*> go nl'
-    merge :: forall ms. SomeNat -> SomeNats -> SomeNats
+    merge :: SomeNat -> SomeNats -> SomeNats
     merge sn sns = case sn of
                      SomeNat i ->
                        case sns of
@@ -135,9 +147,11 @@ someNatsVal (n:ns) = do
     SomeNats ms <- someNatsVal ns
     return $ SomeNats (m :<# ms)
 
--- | List equivalent of 'reifyNat'.  Give a list of integers and provide
--- a continuation from the generated 'NatList' from those integers, and
--- returns the result.
+-- | List equivalent of 'reifyNat'.  Given a list of integers, takes
+-- a function in an "environment" with a @'NatList' ns@ corresponding to
+-- the given list, where every @n@ in @ns@ has a 'KnownNat' instance.
+--
+-- Essentially a continuation-style version of 'SomeNats'.
 --
 -- For compatability with 'reifyNat', be aware that this also produces
 -- @'KnownNat' n@s where @n@ is negative, without complaining.
@@ -198,8 +212,10 @@ deriving instance Show (SymbolList ns)
 -- a 'SymbolList', each with the corresponding 'KnownSymbol' instance
 -- available.  Gives the the ability to "change" the represented natural
 -- number to a new one, in a 'SomeSymbol'.
+--
+-- Can be considered a form of a @Traversal' 'SomeSymbol' 'SomeSymbols'@.
 traverseSymbolList :: forall f ns. Applicative f
-                   => (forall n. KnownSymbol n => Proxy n -> f String)
+                   => (forall n. KnownSymbol n => Proxy n -> f SomeSymbol)
                    -> SymbolList ns
                    -> f SomeSymbols
 traverseSymbolList f = go
@@ -208,10 +224,12 @@ traverseSymbolList f = go
     go nl = case nl of
               ØSL       -> pure $ SomeSymbols ØSL
               p :<$ nl' -> merge <$> f p <*> go nl'
-    merge :: forall ms. String -> SomeSymbols -> SomeSymbols
-    merge s sn = reifySymbol s $ \p ->
-                   case sn of
-                     SomeSymbols sn' -> SomeSymbols (p :<$ sn')
+    merge :: SomeSymbol -> SomeSymbols -> SomeSymbols
+    merge s sl = case s of
+                   SomeSymbol ps ->
+                     case sl of
+                       SomeSymbols sl' ->
+                         SomeSymbols (ps :<$ sl')
 
 -- | Utility function for traversing over all of the @'Proxy' n@s in
 -- a 'SymbolList', each with the corresponding 'KnownSymbol' instance
@@ -229,8 +247,7 @@ traverseSymbolList_ f = go
 
 -- | Utility function for \"mapping\" over each of the 'Symbol's in the
 -- 'SymbolList'.
-mapSymbolList :: forall ns.
-                 (forall n. KnownSymbol n => Proxy n -> String)
+mapSymbolList :: (forall n. KnownSymbol n => Proxy n -> SomeSymbol)
               -> SymbolList ns
               -> SomeSymbols
 mapSymbolList f = runIdentity . traverseSymbolList (Identity . f)
@@ -247,10 +264,14 @@ someSymbolsVal (n:ns) =
           SomeSymbols ms ->
             SomeSymbols (m :<$ ms)
 
--- | List equivalent of 'reifySymbol'.  Give a list of strings and provide
--- a continuation from the generated 'SymbolList' from those integers, and
--- returns the result.
-reifySymbols :: [String] -> (forall ns. KnownSymbols ns => SymbolList ns -> r) -> r
+-- | List equivalent of 'reifyNat'.  Given a list of integers, takes
+-- a function in an "environment" with a @'NatList' ns@ corresponding to
+-- the given list, where every @n@ in @ns@ has a 'KnownNat' instance.
+--
+-- Essentially a continuation-style version of 'SomeSymbols'.
+reifySymbols :: [String]
+             -> (forall ns. KnownSymbols ns => SymbolList ns -> r)
+             -> r
 reifySymbols []     f = f ØSL
 reifySymbols (n:ns) f = reifySymbol n $ \m ->
                           reifySymbols ns $ \ms ->

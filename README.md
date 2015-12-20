@@ -18,7 +18,27 @@ able to apply analogies of `natVal`/`symbolVal` to lists with analogies for
 ------------------------
 
 Provides witnesses for instances arising from the arithmetic operations
-defined in `GHC.TypeLits`.  Consider the common (simplified) problem:
+defined in `GHC.TypeLits`.
+
+In general, if you have `KnownNat n`, GHC can't infer `KnownNat (n + 1)`;
+and if you have `KnownNat m`, as well, GHC can't infer `KnownNat (n + m)`.
+
+This can be extremely annoying when dealing with libraries and applications
+where one regularly adds and subtracts type-level nats and expects `KnownNat`
+instances to follow.  For example, vector concatenation of length-encoded
+vector types can be:
+
+~~~haskell
+concat :: (KnownNat n, KnownNat m)
+       => Vector n       a
+       -> Vector m       a
+       -> Vector (n + m) a
+~~~
+
+But, `n + m` is not a `KnownNat` instance, which severely hinders what you can
+do with this!
+
+Consider this concrete (but silly) example:
 
 ~~~haskell
 getDoubled :: KnownNat n => Proxy n -> Integer
@@ -29,7 +49,7 @@ Which is supposed to call `natVal` with `n * 2`.  However, this fails, because
 while `n` is a `KnownNat`, `n * 2` is not necessarily so.  This module lets
 you re-assure GHC that this is okay.
 
-The most straightforward usage is with `withNatOp`:
+The most straightforward/high-level usage is with `withNatOp`:
 
 ~~~haskell
 getDoubled :: forall n. KnownNat n => Proxy n -> Integer
@@ -45,12 +65,6 @@ of `KnownNat`, so you can use `natVal` on it, and get the expected result:
 > getDoubled (Proxy :: Proxy 12)
 24
 ~~~
-
-The example seems a bit silly, but it's useful for libraries with things like
-"statically sized vectors"; if you want to concatenate a `Vec n` and a `Vec m`
-and get a `Vec (n + m)` polymorphically, you're going to need something like
-this to be able to use your `Vec (n + m)` as if `n + m` was an instance of
-`KnownNat`.
 
 There are four "nat operations" defined here, corresponding to the four
 type-level operations on `Nat` provided in `GHC.TypeLits`: `(%+)`, `(%-)`,
