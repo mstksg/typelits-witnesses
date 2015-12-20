@@ -104,7 +104,9 @@ but you can iterate over them in `NatList [1,2,3]`.
 
 This module also lets you "reify" lists of `Integer`s or `String`s into
 `NatList`s and `SymbolList`s, so you can access them at the type level for
-some dependent types fun.
+some dependent types fun.  When traversing over a `NatList` or `SymbolList`,
+you get a `Proxy n` for each item in the list, with a `KnownNat`/`KnownSymbol`
+instance available to use.
 
 ~~~haskell
 > reifyNats [1,2,3] $ \nl -> do

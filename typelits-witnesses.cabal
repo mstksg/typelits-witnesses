@@ -10,16 +10,18 @@ description:         Provides witnesses for 'KnownNat' and 'KnownSymbol'
                      particular, the arithmetic operations defined in
                      "GHC.TypeLits", and also for type-level lists of
                      'KnownNat' and 'KnownSymbol' instances.
-                     
+                     .
                      This is useful for situations where you have
                      @'KnownNat' n@, and you want to prove to GHC
                      @'KnownNat' (n + 3)@, or @'KnownNat' (2*n + 4)@.
-                     
+                     .
                      It's also useful for when you want to work with type
                      level lists of 'KnownNat' or 'KnownSymbol' instances and
                      singletons for traversing them, and be able to apply
                      analogies of 'natVal' and 'symbolVal' to lists with
                      analogies for 'SomeNat' and 'SomeSymbol'.
+                     .
+                     See README for more information.
 homepage:            https://github.com/mstksg/typelits-witnesses
 license:             MIT
 license-file:        LICENSE
