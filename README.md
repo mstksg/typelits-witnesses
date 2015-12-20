@@ -79,7 +79,9 @@ If you had `KnownNats ns`, then you have two things you can do with it; first,
 ~~~
 
 And more importantly, `natsList`, which provides singletons that you can
-pattern match on to "reify" the structure of the list:
+pattern match on to "reify" the structure of the list, getting a `Proxy n` for
+every item in the list with a `KnownNat`/`KnownSymbol` instance in scope for
+you to use:
 
 ~~~haskell
 printNats :: NatList ns -> IO ()
@@ -104,9 +106,7 @@ but you can iterate over them in `NatList [1,2,3]`.
 
 This module also lets you "reify" lists of `Integer`s or `String`s into
 `NatList`s and `SymbolList`s, so you can access them at the type level for
-some dependent types fun.  When traversing over a `NatList` or `SymbolList`,
-you get a `Proxy n` for each item in the list, with a `KnownNat`/`KnownSymbol`
-instance available to use.
+some dependent types fun.
 
 ~~~haskell
 > reifyNats [1,2,3] $ \nl -> do
