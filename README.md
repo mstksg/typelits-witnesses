@@ -35,8 +35,8 @@ concat :: (KnownNat n, KnownNat m)
        -> Vector (n + m) a
 ~~~
 
-But, `n + m` is not a `KnownNat` instance, which severely hinders what you can
-do with this!
+But, `n + m` now does not have a `KnownNat` instance, which severely hinders
+what you can do with this!
 
 Consider this concrete (but silly) example:
 

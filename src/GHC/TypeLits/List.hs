@@ -31,6 +31,7 @@ module GHC.TypeLits.List (
   , someNatsVal'
   , reifyNats
   , traverseNatList
+  , traverseNatList'
   , traverseNatList_
   , mapNatList
   -- * @KnownSymbols@
@@ -39,6 +40,7 @@ module GHC.TypeLits.List (
   , someSymbolsVal
   , reifySymbols
   , traverseSymbolList
+  , traverseSymbolList'
   , traverseSymbolList_
   , mapSymbolList
   ) where
@@ -115,6 +117,17 @@ traverseNatList f = go
                        case sns of
                          SomeNats is ->
                            SomeNats (i :<# is)
+
+-- | Like 'traverseNatList', but literally actually a
+-- @Traversal' 'SomeNat' 'SomeNats'@, so is usable with lens-library
+-- machinery.
+traverseNatList' :: forall f. Applicative f
+                 => (SomeNat -> f SomeNat)
+                 -> SomeNats
+                 -> f SomeNats
+traverseNatList' f ns =
+    case ns of
+      SomeNats ns' -> traverseNatList (f . SomeNat) ns'
 
 -- | Utility function for traversing over all of the @'Proxy' n@s in
 -- a 'NatList', each with the corresponding 'KnownNat' instance available.
@@ -230,6 +243,17 @@ traverseSymbolList f = go
                      case sl of
                        SomeSymbols sl' ->
                          SomeSymbols (ps :<$ sl')
+
+-- | Like 'traverseSymbolList', but literally actually a
+-- @Traversal' 'SomeSymbol' 'SomeSymbols'@, so is usable with lens-library
+-- machinery.
+traverseSymbolList' :: forall f. Applicative f
+                 => (SomeSymbol -> f SomeSymbol)
+                 -> SomeSymbols
+                 -> f SomeSymbols
+traverseSymbolList' f ns =
+    case ns of
+      SomeSymbols ns' -> traverseSymbolList (f . SomeSymbol) ns'
 
 -- | Utility function for traversing over all of the @'Proxy' n@s in
 -- a 'SymbolList', each with the corresponding 'KnownSymbol' instance

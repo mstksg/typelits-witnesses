@@ -30,7 +30,8 @@
 -- concat :: ('KnownNat' n, 'KnownNat' m) => Vector n a -> Vector m a -> Vector (n + m) a
 -- @
 --
--- But, now @n + m@ is not a 'KnownNat' instance.
+-- But, now @n + m@ does not have a 'KnownNat' instance...which makes
+-- operations like this extremely less useful!
 --
 -- At the highest level, this module can be used with 'withNatOp':
 --
