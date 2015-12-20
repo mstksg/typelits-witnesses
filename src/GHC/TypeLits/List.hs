@@ -22,6 +22,7 @@ module GHC.TypeLits.List (
   , SomeSymbols(..)
   , someSymbolsVal
   , reifySymbols
+  , printNats
   ) where
 
 import Data.Proxy
@@ -32,6 +33,9 @@ import GHC.TypeLits
 data NatList :: [Nat] -> * where
     ØNL   :: NatList '[]
     (:<#) :: (KnownNat n, KnownNats ns) => Proxy n -> NatList ns -> NatList (n ': ns)
+
+infixr 5 :<#
+deriving instance Show (NatList ns)
 
 class KnownNats (ns :: [Nat]) where
     natsVal  :: p ns -> [Integer]
@@ -68,17 +72,20 @@ data SymbolList :: [Symbol] -> * where
     ØSL   :: SymbolList '[]
     (:<$) :: (KnownSymbol n, KnownSymbols ns) => Proxy n -> SymbolList ns -> SymbolList (n ': ns)
 
+infixr 5 :<$
+deriving instance Show (SymbolList ns)
+
 class KnownSymbols (ns :: [Symbol]) where
     symbolsVal  :: p ns -> [String]
-    symbolsProd :: SymbolList ns
+    symbolsList :: SymbolList ns
 
 instance KnownSymbols '[] where
     symbolsVal  _ = []
-    symbolsProd    = ØSL
+    symbolsList    = ØSL
 
 instance (KnownSymbol n, KnownSymbols ns) => KnownSymbols (n ': ns) where
     symbolsVal  _ = symbolVal (Proxy :: Proxy n) : symbolsVal (Proxy :: Proxy ns)
-    symbolsProd   = Proxy :<$ symbolsProd
+    symbolsList   = Proxy :<$ symbolsList
 
 data SomeSymbols :: * where
     SomeSymbols :: KnownSymbols ns => SymbolList ns -> SomeSymbols
@@ -97,4 +104,3 @@ reifySymbols []     f = f ØSL
 reifySymbols (n:ns) f = reifySymbol n $ \m ->
                           reifySymbols ns $ \ms ->
                             f (m :<$ ms)
-

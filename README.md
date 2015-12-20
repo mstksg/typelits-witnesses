@@ -45,6 +45,12 @@ of `KnownNat`, so you can use `natVal` on it, and get the expected result:
 24
 ~~~
 
+The example seems a bit silly, but it's useful for libraries with things like
+"statically sized vectors"; if you want to concatenate a `Vec n` and a `Vec m`
+and get a `Vec (n + m)` polymorphically, you're going to need something like
+this to be able to use your `Vec (n + m)` as if `n + m` was an instance of
+`KnownNat`.
+
 There are four "nat operations" defined here, corresponding to the four
 type-level operations on `Nat` provided in `GHC.TypeLits`: `(%+)`, `(%-)`,
 `(%*)`, and `(%^)`, corresponding to addition, subtraction, multiplication,
@@ -62,4 +68,35 @@ in the module.
 Provides analogies of `KnownNat`, `SomeNat`, `natVal`, etc., to type-level
 lists of `KnownNat` instances.
 
+If you had `KnownNats ns`, then you have two things you can do with it; first,
+`natsVal`, which is like `natVal` but for type-level lists of `KnownNats`:
+
+~~~haskell
+> natsVal (Proxy :: Proxy [1,2,3])
+[1,2,3]
+~~~
+
+And more importantly, `natsList`, which provides singletons that you can
+pattern match on to "reify" the structure of the list:
+
+~~~haskell
+printNats :: NatList ns -> IO ()
+printNats nl = case nl of
+                 ØNL       ->
+                   return ()
+                 p :># nl' -> do
+                   print $ natVal p
+                   printNats nl'
+~~~
+
+~~~haskell
+> printNats (natsList :: NatList [1,2,3])
+1
+2
+3
+~~~
+
+Without this, there is no way to "iterate over" and "access" every `Nat` in a
+list of `KnownNat`s.  You can't "iterate" over `[1,2,3]` in `Proxy [1,2,3]`,
+but you can iterate over them in `NatList [1,2,3]`.
 
