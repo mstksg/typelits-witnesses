@@ -10,8 +10,9 @@ This is useful for situations where you have `KnownNat n`, and you want to
 prove to GHC `KnownNat (n + 3)`, or `KnownNat (2*n + 4)`.
 
 It's also useful for when you want to work with type level lists of
-`KnownNat`/`KnownSymbol` instances, and be able to apply analogies of
-`natVal`/`symbolVal` to lists with analogies for `SomeNat` and `SomeSymbol`.
+`KnownNat`/`KnownSymbol` instances and singletons for traversing them, and be
+able to apply analogies of `natVal`/`symbolVal` to lists with analogies for
+`SomeNat` and `SomeSymbol`.
 
 `GHC.TypeLits.Witnesses`
 ------------------------
@@ -60,13 +61,14 @@ Note that `(%-)` is implemented in a way that allows for the result to be a
 *negative* `Nat`.
 
 There are more advanced operations dealing with low-level machinery, as well,
-in the module.
+in the module.  See module documentation for more detail.
 
 `GHC.TypeLits.List`
 -------------------
 
 Provides analogies of `KnownNat`, `SomeNat`, `natVal`, etc., to type-level
-lists of `KnownNat` instances.
+lists of `KnownNat` instances, and also singletons for iterating over
+type-level lists of `Nat`s and `Symbol`s.
 
 If you had `KnownNats ns`, then you have two things you can do with it; first,
 `natsVal`, which is like `natVal` but for type-level lists of `KnownNats`:
@@ -99,4 +101,20 @@ printNats nl = case nl of
 Without this, there is no way to "iterate over" and "access" every `Nat` in a
 list of `KnownNat`s.  You can't "iterate" over `[1,2,3]` in `Proxy [1,2,3]`,
 but you can iterate over them in `NatList [1,2,3]`.
+
+This module also lets you "reify" lists of `Integer`s or `String`s into
+`NatList`s and `SymbolList`s, so you can access them at the type level for
+some dependent types fun.
+
+~~~haskell
+> reifyNats [1,2,3] $ \nl -> do
+    print nl
+    printNats nl
+Proxy :<# Proxy :<# Proxy :<# ØNL
+1
+2
+3
+~~~
+
+See module documentation for more details and variations.
 
