@@ -36,9 +36,9 @@
 -- At the highest level, this module can be used with 'withNatOp':
 --
 -- @
--- getDoubled :: forall n. KnownNat n => Proxy n -> Integer
--- getDoubled p = withNatOp (%*) p (Proxy :: Proxy 2) $
---     natVal (Proxy :: Proxy (n * 2))
+-- getDoubled :: forall n. 'KnownNat' n => 'Proxy' n -> 'Integer'
+-- getDoubled p = 'withNatOp' ('%*') p ('Proxy' :: 'Proxy' 2) $
+--     natVal ('Proxy' :: 'Proxy' (n * 2))
 -- @
 --
 -- With the final argument of 'withNatOp', you can provide a result
@@ -49,11 +49,11 @@
 -- use them via pattern matching:
 --
 -- @
--- let pn = 'natDict' (Proxy :: Proxy n)
---     p1 = 'natDict' (Proxy :: Proxy 1)
---     p2 = 'natDict' (Proxy :: Proxy 2)
--- in  case pn %* p2 %+ p1 of
---       'Dict' -> 'natVal' (Proxy :: Proxy (n * 2 + 1))
+-- let pn = 'natDict' ('Proxy' :: 'Proxy' n)
+--     p1 = 'natDict' ('Proxy' :: 'Proxy' 1)
+--     p2 = 'natDict' ('Proxy' :: 'Proxy' 2)
+-- in  case pn '%*' p2 '%+' p1 of
+--       'Dict' -> 'natVal' ('Proxy' :: 'Proxy' (n * 2 + 1))
 -- @
 --
 -- In the branch of the case statement, @n * 2 + 1@ indeed has a 'KnownNat'
@@ -62,7 +62,7 @@
 -- Note that the operators have appropriate fixities to mimic value-level
 -- arithmetic operations.
 --
--- __WARNING__: '(%-)' and 'entailSub' are is implemented in a way such
+-- __WARNING__: '%-' and 'entailSub' are is implemented in a way such
 -- that /negative/ 'KnownNat's are produced without any errors.  The
 -- production of witnesses and entailments will hold, but be aware that any
 -- functions that rely on 'KnownNat' instances to be non-negative can
@@ -142,23 +142,23 @@ Dict %* Dict = mapDict entailMul (Dict :: Dict (KnownNat n, KnownNat m))
 (%^) :: forall n m. Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat (n ^ m))
 Dict %^ Dict = mapDict entailExp (Dict :: Dict (KnownNat n, KnownNat m))
 
--- | A high-level wrapper for the interface of this module.  Give it one of
--- the witness-generating operators on 'KnownNat's in this module ('(%+)',
--- '(%-)', '(%*)', or '(%^)'), two 'Proxy's containing the 'KnownNat's to
+-- | A high-level the interface of this module.  Give it one of
+-- the witness-generating operators on 'KnownNat's in this module ('%+',
+-- '%-', '%*', or '%^'), two 'Proxy's containing the 'KnownNat's to
 -- be modified, and receive an environment where the result of the
 -- operation (applied to the 'KnownNat's) has a 'KnownNat' instance.
 --
 -- For example, with
 --
 -- @
--- 'withNatOp' (%+) (Proxy :: Proxy n) (Proxy :: Proxy 1) r
+-- 'withNatOp' ('%+') ('Proxy' :: 'Proxy' n) ('Proxy' :: 'Proxy' 1) r
 -- @
 --
 -- in @r@, @n + 1@ has a 'KnownNat' instance:
 --
 -- @
--- 'withNatOp' '(%+)' (Proxy :: Proxy n) (Proxy :: Proxy 1) $
---     'natVal' (Proxy :: Proxy (n + 1))
+-- 'withNatOp' ('%+') ('Proxy' :: 'Proxy' n) ('Proxy' :: 'Proxy' 1) $
+--     'natVal' ('Proxy' :: 'Proxy' (n + 1))
 -- -- => will return the 'Integer' correpsonding to n + 1
 -- @
 --
@@ -169,21 +169,24 @@ Dict %^ Dict = mapDict entailExp (Dict :: Dict (KnownNat n, KnownNat m))
 -- For multiple operations on values, this can be chained:
 --
 -- @
--- 'withNatOp' (%*) (Proxy :: Proxy n) (Proxy :: Proxy 2) $
---   'withNatOp' (%+) (Proxy :: Proxy (n*2)) (Proxy :: Proxy 1) $
---     'natVal' (Proxy :: Proxy (n * 2 + 1))
+-- 'withNatOp' ('%*') ('Proxy' :: 'Proxy' n) ('Proxy' :: 'Proxy' 2) $
+--   'withNatOp' ('%+') ('Proxy' :: 'Proxy' (n*2)) ('Proxy' :: 'Proxy' 1) $
+--     'natVal' ('Proxy' :: 'Proxy' (n * 2 + 1))
 -- @
 --
 -- But, at this point, it's easier and simpler to just directly use the
 -- operators and pattern match:
 --
 -- @
--- let pn = 'natDict' (Proxy :: Proxy n)
---     p1 = 'natDict' (Proxy :: Proxy 1)
---     p2 = 'natDict' (Proxy :: Proxy 2)
--- in  case pn %* p2 %+ p1 of
---       'Dict' -> 'natVal' (Proxy :: Proxy (n * 2 + 1))
+-- let pn = 'natDict' ('Proxy' :: 'Proxy' n)
+--     p1 = 'natDict' ('Proxy' :: 'Proxy' 1)
+--     p2 = 'natDict' ('Proxy' :: 'Proxy' 2)
+-- in  case pn '%*' p2 '%+' p1 of
+--       'Dict' -> 'natVal' ('Proxy' :: 'Proxy' (n * 2 + 1))
 -- @
+--
+-- (Note that associativity and fixity for the witness-generating operators
+-- are set to match that of normal addition and multiplication, etc.)
 --
 --
 withNatOp :: (KnownNat n, KnownNat m)

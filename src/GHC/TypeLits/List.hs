@@ -21,6 +21,15 @@
 -- Stability   : unstable
 -- Portability : non-portable
 --
+--
+-- Provides the 'KnownNats' and 'KnownSymbols' typeclasses in analogy to
+-- 'KnownNat' and 'KnownSymbol' from "GHC.TypeLits".  Also provides
+-- singleton-esque structures for traversing over type-level lists of
+-- 'Nat's and 'Symbol's.  Comes with continuation-style reifiers and
+-- existential types for dependent typing usage, and as an analogy with
+-- 'SomeNat' and 'SomeSymbol'.
+--
+-- See typeclass documentations for more information.
 
 module GHC.TypeLits.List (
   -- * @KnownNats@
@@ -37,6 +46,7 @@ module GHC.TypeLits.List (
   -- * @KnownSymbols@
   , KnownSymbols(..)
   , SomeSymbols(..)
+  , SymbolList(..)
   , someSymbolsVal
   , reifySymbols
   , traverseSymbolList
