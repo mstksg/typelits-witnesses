@@ -1,7 +1,6 @@
 name:                typelits-witnesses
 version:             0.1.0.0
-synopsis:            Various forms of existential witnesses and singletons for
-                     operations on GHC TypeLits
+synopsis:            Existential witnesses, singletons, and classes for operations on GHC TypeLits
 description:         Provides witnesses for 'KnownNat' and 'KnownSymbol'
                      instances for various operations on GHC TypeLits - in
                      particular, the arithmetic operations defined in
