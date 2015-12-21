@@ -90,7 +90,7 @@ instance (KnownNat n, KnownNats ns) => KnownNats (n ': ns) where
 -- It's a 'NatList', but you don't know what the list contains at
 -- compile-time.
 data SomeNats :: * where
-    SomeNats :: KnownNats ns => NatList ns -> SomeNats
+    SomeNats :: KnownNats ns => !(NatList ns) -> SomeNats
 
 -- | Singleton-esque type for "traversing" over type-level lists of 'Nat's.
 -- Essentially contains a (value-level) list of @'Proxy' n@s, but each 'n'
@@ -100,7 +100,8 @@ data SomeNats :: * where
 -- Typically generated using 'natsList'.
 data NatList :: [Nat] -> * where
     ØNL   :: NatList '[]
-    (:<#) :: (KnownNat n, KnownNats ns) => Proxy n -> NatList ns -> NatList (n ': ns)
+    (:<#) :: (KnownNat n, KnownNats ns)
+          => !(Proxy n) -> !(NatList ns) -> NatList (n ': ns)
 
 infixr 5 :<#
 deriving instance Show (NatList ns)
@@ -216,7 +217,7 @@ instance (KnownSymbol n, KnownSymbols ns) => KnownSymbols (n ': ns) where
 -- | Represents unknown type-level lists of 'Symbol's. It's a 'SymbolList',
 -- but you don't know what the list contains at compile-time.
 data SomeSymbols :: * where
-    SomeSymbols :: KnownSymbols ns => SymbolList ns -> SomeSymbols
+    SomeSymbols :: KnownSymbols ns => !(SymbolList ns) -> SomeSymbols
 
 -- | Singleton-esque type for "traversing" over type-level lists of
 -- 'Symbol's. Essentially contains a (value-level) list of @'Proxy' n@s,
@@ -226,7 +227,8 @@ data SomeSymbols :: * where
 -- Typically generated using 'symbolsList'.
 data SymbolList :: [Symbol] -> * where
     ØSL   :: SymbolList '[]
-    (:<$) :: (KnownSymbol n, KnownSymbols ns) => Proxy n -> SymbolList ns -> SymbolList (n ': ns)
+    (:<$) :: (KnownSymbol n, KnownSymbols ns)
+          => !(Proxy n) -> !(SymbolList ns) -> SymbolList (n ': ns)
 
 infixr 5 :<$
 deriving instance Show (SymbolList ns)
