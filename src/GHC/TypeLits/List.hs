@@ -39,6 +39,7 @@ module GHC.TypeLits.List (
   , someNatsVal
   , someNatsVal'
   , reifyNats
+  , reifyNats'
   , sameNats
   -- ** Traversals
   , traverseNatList
@@ -207,6 +208,20 @@ reifyNats (n:ns) f = reifyNat n $ \m ->
                        reifyNats ns $ \ms ->
                          f (m :<# ms)
 
+-- | "Safe" version of 'reifyNats', which will only run the continuation if
+-- every 'Integer' in the list is non-negative.  If not, then returns
+-- the given "default" value instead.
+reifyNats'
+    :: [Integer]
+    -> r
+    -> (forall ns. KnownNats ns => NatList ns -> r)
+    -> r
+reifyNats' ns d f =
+    case someNatsVal ns of
+      Just (SomeNats ms) -> f ms
+      Nothing            -> d
+
+
 -- | Like 'someNatsVal', but will also go ahead and produce 'KnownNat's
 -- whose integer values are negative.  It won't ever error on producing
 -- them, but extra care must be taken when using the produced 'SomeNat's.
@@ -222,7 +237,7 @@ someNatsVal' ns = reifyNats ns SomeNats
 -- case 'sameNats' ns ms of
 --   Just 'Refl' -> -- in this branch, GHC recognizes that the two ['Nat']s
 --                  -- are the same.
---   Nothing     -> -- in this branch, they aren't
+--   Nothing   -> -- in this branch, they aren't
 -- @
 sameNats
     :: (KnownNats ns, KnownNats ms)
@@ -380,6 +395,7 @@ reifySymbols (n:ns) f = reifySymbol n $ \m ->
                           reifySymbols ns $ \ms ->
                             f (m :<$ ms)
 
+
 -- | Get evidence that the two 'KnownSymbols' lists are actually the "same"
 -- list of 'Symboles's (that they were instantiated with the same strings).
 --
@@ -389,7 +405,7 @@ reifySymbols (n:ns) f = reifySymbol n $ \m ->
 -- case 'sameSymbols' ns ms of
 --   Just 'Refl' -> -- in this branch, GHC recognizes that the
 --                  -- two ['Symbol']s are the same
---   Nothing     -> -- in this branch, they aren't
+--   Nothing   -> -- in this branch, they aren't
 -- @
 sameSymbols
     :: (KnownSymbols ns, KnownSymbols ms)
@@ -409,3 +425,4 @@ sameSymbols ns ms =
             Refl <- sameSymbol n m
             Refl <- sameSymbols ns' ms'
             return Refl
+
