@@ -37,7 +37,7 @@ module GHC.TypeLits.List (
   , SomeNats(..)
   , NatList(..)
   , someNatsVal
-  , someNatsVal'
+  , someNatsValPos
   , reifyNats
   , reifyNats'
   , sameNats
