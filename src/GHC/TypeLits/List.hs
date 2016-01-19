@@ -32,30 +32,39 @@
 -- See typeclass documentations for more information.
 
 module GHC.TypeLits.List (
-  -- * @KnownNats@
+  -- * 'KnownNats'
     KnownNats(..)
   , SomeNats(..)
   , NatList(..)
   , someNatsVal
   , someNatsVal'
   , reifyNats
+  , sameNats
+  -- ** Traversals
   , traverseNatList
   , traverseNatList'
   , traverseNatList_
+  -- *** Maps
   , mapNatList
-  -- * @KnownSymbols@
+  , mapNatList'
+  -- * 'KnownSymbols'
   , KnownSymbols(..)
   , SomeSymbols(..)
   , SymbolList(..)
   , someSymbolsVal
   , reifySymbols
+  , sameSymbols
+  -- ** Traversals
   , traverseSymbolList
   , traverseSymbolList'
   , traverseSymbolList_
+  -- *** Maps
   , mapSymbolList
+  , mapSymbolList'
   ) where
 
 import Data.Proxy
+import Data.Type.Equality
 import Data.Reflection
 import GHC.TypeLits
 import Data.Functor.Identity
@@ -129,8 +138,8 @@ traverseNatList f = go
                          SomeNats is ->
                            SomeNats (i :<# is)
 
--- | Like 'traverseNatList', but literally actually a
--- @Traversal' 'SomeNat' 'SomeNats'@, so is usable with lens-library
+-- | Like 'traverseNatList', but literally actually a @Traversal' 'SomeNat'
+-- 'SomeNats'@, avoiding the Rank-2 types, so is usable with lens-library
 -- machinery.
 traverseNatList' :: forall f. Applicative f
                  => (SomeNat -> f SomeNat)
@@ -161,6 +170,14 @@ mapNatList :: (forall n. KnownNat n => Proxy n -> SomeNat)
            -> SomeNats
 mapNatList f = runIdentity . traverseNatList (Identity . f)
 
+-- | Like 'mapNatList', but avoids the Rank-2 types, so can be used with
+-- '.' (function composition) and in other situations where 'mapNatList'
+-- would cause problems.
+mapNatList' :: (SomeNat -> SomeNat)
+            -> SomeNats
+            -> SomeNats
+mapNatList' f = runIdentity . traverseNatList' (Identity . f)
+
 -- | List equivalent of 'someNatVal'.  Convert a list of integers into an
 -- unknown type-level list of naturals.  Will return 'Nothing' if any of
 -- the given 'Integer's is negative.
@@ -190,6 +207,37 @@ reifyNats (n:ns) f = reifyNat n $ \m ->
 -- them, but extra care must be taken when using the produced 'SomeNat's.
 someNatsVal' :: [Integer] -> SomeNats
 someNatsVal' ns = reifyNats ns SomeNats
+
+-- | Get evidence that the two 'KnownNats' lists are actually the "same"
+-- list of 'Nat's (that they were instantiated with the same numbers).
+--
+-- Essentialy runs 'sameNat' over the lists:
+--
+-- @
+-- case 'sameNats' ns ms of
+--   Just 'Refl' -> -- in this branch, GHC recognizes that the two ['Nat']s
+--                  -- are the same.
+--   Nothing     -> -- in this branch, they aren't
+-- @
+sameNats :: (KnownNats ns, KnownNats ms)
+         => NatList ns
+         -> NatList ms
+         -> Maybe (ns :~: ms)
+sameNats ns ms =
+    case ns of
+      ØNL ->
+        case ms of
+          ØNL     -> Just Refl
+          _ :<# _ -> Nothing
+      n :<# ns' ->
+        case ms of
+          ØNL     -> Nothing
+          m :<# ms' -> do
+            Refl <- sameNat n m
+            Refl <- sameNats ns' ms'
+            return Refl
+
+
 
 -- | @'KnownSymbols' ns@ is intended to represent that every 'Symbol' in the
 -- type-level list 'ns' is itself a 'KnownSymbol' (meaning, you can use
@@ -257,8 +305,8 @@ traverseSymbolList f = go
                          SomeSymbols (ps :<$ sl')
 
 -- | Like 'traverseSymbolList', but literally actually a
--- @Traversal' 'SomeSymbol' 'SomeSymbols'@, so is usable with lens-library
--- machinery.
+-- @Traversal' 'SomeSymbol' 'SomeSymbols'@, avoiding the Rank-2 types, so
+-- is usable with lens-library machinery.
 traverseSymbolList' :: forall f. Applicative f
                  => (SomeSymbol -> f SomeSymbol)
                  -> SomeSymbols
@@ -288,6 +336,14 @@ mapSymbolList :: (forall n. KnownSymbol n => Proxy n -> SomeSymbol)
               -> SomeSymbols
 mapSymbolList f = runIdentity . traverseSymbolList (Identity . f)
 
+-- | Like 'mapSymbolList', but avoids the Rank-2 types, so can be used with
+-- '.' (function composition) and in other situations where 'mapSymbolList'
+-- would cause problems.
+mapSymbolList' :: (SomeSymbol -> SomeSymbol)
+               -> SomeSymbols
+               -> SomeSymbols
+mapSymbolList' f = runIdentity . traverseSymbolList' (Identity . f)
+
 -- | List equivalent of 'someNatVal'.  Convert a list of integers into an
 -- unknown type-level list of naturals.  Will return 'Nothing' if any of
 -- the given 'Integer's is negative.
@@ -312,3 +368,32 @@ reifySymbols []     f = f ØSL
 reifySymbols (n:ns) f = reifySymbol n $ \m ->
                           reifySymbols ns $ \ms ->
                             f (m :<$ ms)
+
+-- | Get evidence that the two 'KnownSymbols' lists are actually the "same"
+-- list of 'Symboles's (that they were instantiated with the same strings).
+--
+-- Essentialy runs 'sameSymbol' over the lists:
+--
+-- @
+-- case 'sameSymbols' ns ms of
+--   Just 'Refl' -> -- in this branch, GHC recognizes that the
+--                  -- two ['Symbol']s are the same
+--   Nothing     -> -- in this branch, they aren't
+-- @
+sameSymbols :: (KnownSymbols ns, KnownSymbols ms)
+            => SymbolList ns
+            -> SymbolList ms
+            -> Maybe (ns :~: ms)
+sameSymbols ns ms =
+    case ns of
+      ØSL ->
+        case ms of
+          ØSL     -> Just Refl
+          _ :<$ _ -> Nothing
+      n :<$ ns' ->
+        case ms of
+          ØSL     -> Nothing
+          m :<$ ms' -> do
+            Refl <- sameSymbol n m
+            Refl <- sameSymbols ns' ms'
+            return Refl
