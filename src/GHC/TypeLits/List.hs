@@ -121,10 +121,11 @@ deriving instance Show (NatList ns)
 -- a new one, in a 'SomeNat'.
 --
 -- Can be considered a form of a @Traversal' 'SomeNat' 'SomeNats'@.
-traverseNatList :: forall f ns. Applicative f
-                => (forall n. KnownNat n => Proxy n -> f SomeNat)
-                -> NatList ns
-                -> f SomeNats
+traverseNatList
+    :: forall f ns. Applicative f
+    => (forall n. KnownNat n => Proxy n -> f SomeNat)
+    -> NatList ns
+    -> f SomeNats
 traverseNatList f = go
   where
     go :: forall ms. NatList ms -> f SomeNats
@@ -141,10 +142,11 @@ traverseNatList f = go
 -- | Like 'traverseNatList', but literally actually a @Traversal' 'SomeNat'
 -- 'SomeNats'@, avoiding the Rank-2 types, so is usable with lens-library
 -- machinery.
-traverseNatList' :: forall f. Applicative f
-                 => (SomeNat -> f SomeNat)
-                 -> SomeNats
-                 -> f SomeNats
+traverseNatList'
+    :: forall f. Applicative f
+    => (SomeNat -> f SomeNat)
+    -> SomeNats
+    -> f SomeNats
 traverseNatList' f ns =
     case ns of
       SomeNats ns' -> traverseNatList (f . SomeNat) ns'
@@ -152,10 +154,11 @@ traverseNatList' f ns =
 -- | Utility function for traversing over all of the @'Proxy' n@s in
 -- a 'NatList', each with the corresponding 'KnownNat' instance available.
 -- Results are ignored.
-traverseNatList_ :: forall f a ns. Applicative f
-                 => (forall n. KnownNat n => Proxy n -> f a)
-                 -> NatList ns
-                 -> f ()
+traverseNatList_
+    :: forall f a ns. Applicative f
+    => (forall n. KnownNat n => Proxy n -> f a)
+    -> NatList ns
+    -> f ()
 traverseNatList_ f = go
   where
     go :: forall ms. NatList ms -> f ()
@@ -165,17 +168,19 @@ traverseNatList_ f = go
 
 -- | Utility function for \"mapping\" over each of the 'Nat's in the
 -- 'NatList'.
-mapNatList :: (forall n. KnownNat n => Proxy n -> SomeNat)
-           -> NatList ns
-           -> SomeNats
+mapNatList
+    :: (forall n. KnownNat n => Proxy n -> SomeNat)
+    -> NatList ns
+    -> SomeNats
 mapNatList f = runIdentity . traverseNatList (Identity . f)
 
 -- | Like 'mapNatList', but avoids the Rank-2 types, so can be used with
 -- '.' (function composition) and in other situations where 'mapNatList'
 -- would cause problems.
-mapNatList' :: (SomeNat -> SomeNat)
-            -> SomeNats
-            -> SomeNats
+mapNatList'
+    :: (SomeNat -> SomeNat)
+    -> SomeNats
+    -> SomeNats
 mapNatList' f = runIdentity . traverseNatList' (Identity . f)
 
 -- | List equivalent of 'someNatVal'.  Convert a list of integers into an
@@ -219,10 +224,11 @@ someNatsVal' ns = reifyNats ns SomeNats
 --                  -- are the same.
 --   Nothing     -> -- in this branch, they aren't
 -- @
-sameNats :: (KnownNats ns, KnownNats ms)
-         => NatList ns
-         -> NatList ms
-         -> Maybe (ns :~: ms)
+sameNats
+    :: (KnownNats ns, KnownNats ms)
+    => NatList ns
+    -> NatList ms
+    -> Maybe (ns :~: ms)
 sameNats ns ms =
     case ns of
       ØNL ->
@@ -287,10 +293,11 @@ deriving instance Show (SymbolList ns)
 -- number to a new one, in a 'SomeSymbol'.
 --
 -- Can be considered a form of a @Traversal' 'SomeSymbol' 'SomeSymbols'@.
-traverseSymbolList :: forall f ns. Applicative f
-                   => (forall n. KnownSymbol n => Proxy n -> f SomeSymbol)
-                   -> SymbolList ns
-                   -> f SomeSymbols
+traverseSymbolList
+    :: forall f ns. Applicative f
+    => (forall n. KnownSymbol n => Proxy n -> f SomeSymbol)
+    -> SymbolList ns
+    -> f SomeSymbols
 traverseSymbolList f = go
   where
     go :: forall ms. SymbolList ms -> f SomeSymbols
@@ -307,10 +314,11 @@ traverseSymbolList f = go
 -- | Like 'traverseSymbolList', but literally actually a
 -- @Traversal' 'SomeSymbol' 'SomeSymbols'@, avoiding the Rank-2 types, so
 -- is usable with lens-library machinery.
-traverseSymbolList' :: forall f. Applicative f
-                 => (SomeSymbol -> f SomeSymbol)
-                 -> SomeSymbols
-                 -> f SomeSymbols
+traverseSymbolList'
+    :: forall f. Applicative f
+    => (SomeSymbol -> f SomeSymbol)
+    -> SomeSymbols
+    -> f SomeSymbols
 traverseSymbolList' f ns =
     case ns of
       SomeSymbols ns' -> traverseSymbolList (f . SomeSymbol) ns'
@@ -318,10 +326,11 @@ traverseSymbolList' f ns =
 -- | Utility function for traversing over all of the @'Proxy' n@s in
 -- a 'SymbolList', each with the corresponding 'KnownSymbol' instance
 -- available. Results are ignored.
-traverseSymbolList_ :: forall f ns. Applicative f
-                    => (forall n a. KnownSymbol n => Proxy n -> f a)
-                    -> SymbolList ns
-                    -> f ()
+traverseSymbolList_
+    :: forall f ns. Applicative f
+    => (forall n a. KnownSymbol n => Proxy n -> f a)
+    -> SymbolList ns
+    -> f ()
 traverseSymbolList_ f = go
   where
     go :: forall ms. SymbolList ms -> f ()
@@ -331,17 +340,19 @@ traverseSymbolList_ f = go
 
 -- | Utility function for \"mapping\" over each of the 'Symbol's in the
 -- 'SymbolList'.
-mapSymbolList :: (forall n. KnownSymbol n => Proxy n -> SomeSymbol)
-              -> SymbolList ns
-              -> SomeSymbols
+mapSymbolList
+    :: (forall n. KnownSymbol n => Proxy n -> SomeSymbol)
+    -> SymbolList ns
+    -> SomeSymbols
 mapSymbolList f = runIdentity . traverseSymbolList (Identity . f)
 
 -- | Like 'mapSymbolList', but avoids the Rank-2 types, so can be used with
 -- '.' (function composition) and in other situations where 'mapSymbolList'
 -- would cause problems.
-mapSymbolList' :: (SomeSymbol -> SomeSymbol)
-               -> SomeSymbols
-               -> SomeSymbols
+mapSymbolList'
+    :: (SomeSymbol -> SomeSymbol)
+    -> SomeSymbols
+    -> SomeSymbols
 mapSymbolList' f = runIdentity . traverseSymbolList' (Identity . f)
 
 -- | List equivalent of 'someNatVal'.  Convert a list of integers into an
@@ -380,10 +391,11 @@ reifySymbols (n:ns) f = reifySymbol n $ \m ->
 --                  -- two ['Symbol']s are the same
 --   Nothing     -> -- in this branch, they aren't
 -- @
-sameSymbols :: (KnownSymbols ns, KnownSymbols ms)
-            => SymbolList ns
-            -> SymbolList ms
-            -> Maybe (ns :~: ms)
+sameSymbols
+    :: (KnownSymbols ns, KnownSymbols ms)
+    => SymbolList ns
+    -> SymbolList ms
+    -> Maybe (ns :~: ms)
 sameSymbols ns ms =
     case ns of
       ØSL ->

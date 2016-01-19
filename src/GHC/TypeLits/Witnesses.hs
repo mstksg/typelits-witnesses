@@ -189,12 +189,13 @@ Dict %^ Dict = mapDict entailExp (Dict :: Dict (KnownNat n, KnownNat m))
 -- are set to match that of normal addition and multiplication, etc.)
 --
 --
-withNatOp :: (KnownNat n, KnownNat m)
-          => (Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat q))
-          -> Proxy n
-          -> Proxy m
-          -> (KnownNat q => r)
-          -> r
+withNatOp
+    :: (KnownNat n, KnownNat m)
+    => (Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat q))
+    -> Proxy n
+    -> Proxy m
+    -> (KnownNat q => r)
+    -> r
 withNatOp op x y r = case natDict x `op` natDict y of
                        Dict -> r
 
