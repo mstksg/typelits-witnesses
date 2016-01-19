@@ -200,8 +200,11 @@ someNatsVal (n:ns) = do
 --
 -- Essentially a continuation-style version of 'SomeNats'.
 --
--- For compatability with 'reifyNat', be aware that this also produces
--- @'KnownNat' n@s where @n@ is negative, without complaining.
+-- Be aware that this also produces @'KnownNat' n@s where @n@ is negative,
+-- without complaining.  To be consistent, within the library, this
+-- /should/ be called @reifyNatsPos@; however, the naming choice is for
+-- consistency with 'reifyNat' from the /reflections/ package.  Use
+-- 'reifyNats'' for a "safe" version.
 reifyNats :: [Integer] -> (forall ns. KnownNats ns => NatList ns -> r) -> r
 reifyNats []     f = f ØNL
 reifyNats (n:ns) f = reifyNat n $ \m ->
@@ -225,8 +228,8 @@ reifyNats' ns d f =
 -- | Like 'someNatsVal', but will also go ahead and produce 'KnownNat's
 -- whose integer values are negative.  It won't ever error on producing
 -- them, but extra care must be taken when using the produced 'SomeNat's.
-someNatsVal' :: [Integer] -> SomeNats
-someNatsVal' ns = reifyNats ns SomeNats
+someNatsValPos :: [Integer] -> SomeNats
+someNatsValPos ns = reifyNats ns SomeNats
 
 -- | Get evidence that the two 'KnownNats' lists are actually the "same"
 -- list of 'Nat's (that they were instantiated with the same numbers).
