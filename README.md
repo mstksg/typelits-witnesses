@@ -139,5 +139,18 @@ Proxy :<# Proxy :<# Proxy :<# ØNL
 3
 ~~~
 
+Another thing you can do is provide witneses that two `[Nat]`s or `[Symbol]`s
+are the same/were instantiated with the same numbers/symbols.
+
+~~~haskell
+> reifyNats [1,2,3] $ \ns -> do
+  reifyNats [1,2,3] $ \ms -> do
+    case sameNats ns ms of
+      Just Refl -> -- in this branch, ns and ms are the same.
+      Nothing   -> -- in this branch, they aren't
+~~~
+
+The above would match on the `Just Refl` branch.
+
 See module documentation for more details and variations.
 

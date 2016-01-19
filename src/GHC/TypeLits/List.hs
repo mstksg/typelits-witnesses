@@ -29,7 +29,7 @@
 -- existential types for dependent typing usage, and as an analogy with
 -- 'SomeNat' and 'SomeSymbol'.
 --
--- See typeclass documentations for more information.
+-- See typeclass documentations and README for more information.
 
 module GHC.TypeLits.List (
   -- * 'KnownNats'
