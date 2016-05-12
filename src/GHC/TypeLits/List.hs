@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE RankNTypes #-}
@@ -42,6 +43,7 @@ module GHC.TypeLits.List (
   , reifyNats
   , reifyNats'
   , sameNats
+  , elimNatList
   -- ** Traversals
   , traverseNatList
   , traverseNatList'
@@ -56,6 +58,7 @@ module GHC.TypeLits.List (
   , someSymbolsVal
   , reifySymbols
   , sameSymbols
+  , elimSymbolList
   -- ** Traversals
   , traverseSymbolList
   , traverseSymbolList'
@@ -123,7 +126,7 @@ deriving instance Show (NatList ns)
 -- Gives the the ability to "change" the represented natural number to
 -- a new one, in a 'SomeNat'.
 --
--- Can be considered a form of a @Traversal' 'SomeNat' 'SomeNats'@.
+-- Can be considered a form of a @Traversal' 'SomeNats' 'SomeNat'@.
 traverseNatList
     :: forall f ns. Applicative f
     => (forall n. KnownNat n => Proxy n -> f SomeNat)
@@ -132,27 +135,25 @@ traverseNatList
 traverseNatList f = go
   where
     go :: forall ms. NatList ms -> f SomeNats
-    go nl = case nl of
-              ØNL       -> pure $ SomeNats ØNL
-              p :<# nl' -> merge <$> f p <*> go nl'
+    go = \case
+      ØNL      -> pure $ SomeNats ØNL
+      n :<# ns -> merge <$> f n <*> go ns
     merge :: SomeNat -> SomeNats -> SomeNats
-    merge sn sns = case sn of
-                     SomeNat i ->
-                       case sns of
-                         SomeNats is ->
-                           SomeNats (i :<# is)
+    merge = \case
+      SomeNat n -> \case
+        SomeNats ns ->
+          SomeNats (n :<# ns)
 
--- | Like 'traverseNatList', but literally actually a @Traversal' 'SomeNat'
--- 'SomeNats'@, avoiding the Rank-2 types, so is usable with lens-library
--- machinery.
+-- | Like 'traverseNatList', but literally actually a @Traversal'
+-- 'SomeNats' 'SomeNat'@, avoiding the Rank-2 types, so is usable with
+-- lens-library machinery.
 traverseNatList'
     :: forall f. Applicative f
     => (SomeNat -> f SomeNat)
     -> SomeNats
     -> f SomeNats
-traverseNatList' f ns =
-    case ns of
-      SomeNats ns' -> traverseNatList (f . SomeNat) ns'
+traverseNatList' f = \case
+    SomeNats ns -> traverseNatList (f . SomeNat) ns
 
 -- | Utility function for traversing over all of the @'Proxy' n@s in
 -- a 'NatList', each with the corresponding 'KnownNat' instance available.
@@ -165,9 +166,22 @@ traverseNatList_
 traverseNatList_ f = go
   where
     go :: forall ms. NatList ms -> f ()
-    go nl = case nl of
-              ØNL       -> pure ()
-              p :<# nl' -> f p *> go nl'
+    go = \case
+      ØNL       -> pure ()
+      n :<# ns -> f n *> go ns
+
+-- | The "eliminator" for 'NatList'.  You can think of this as
+-- a dependently typed analogy for a fold.
+elimNatList
+    :: forall p ns. ()
+    => p '[]
+    -> (forall m ms. (KnownNat m, KnownNats ms) => Proxy m -> p ms -> p (m ': ms))
+    -> NatList ns
+    -> p ns
+elimNatList z s = \case
+    ØNL      -> z
+    n :<# ns -> s n (elimNatList z s ns)
+
 
 -- | Utility function for \"mapping\" over each of the 'Nat's in the
 -- 'NatList'.
@@ -249,49 +263,46 @@ sameNats
     => NatList ns
     -> NatList ms
     -> Maybe (ns :~: ms)
-sameNats ns ms =
-    case ns of
-      ØNL ->
-        case ms of
-          ØNL     -> Just Refl
-          _ :<# _ -> Nothing
-      n :<# ns' ->
-        case ms of
-          ØNL     -> Nothing
-          m :<# ms' -> do
-            Refl <- sameNat n m
-            Refl <- sameNats ns' ms'
-            return Refl
+sameNats = \case
+    ØNL      -> \case
+      ØNL      -> Just Refl
+      _ :<# _  -> Nothing
+    n :<# ns -> \case
+      ØNL      -> Nothing
+      m :<# ms -> do
+        Refl <- sameNat n m
+        Refl <- sameNats ns ms
+        return Refl
 
 
 
--- | @'KnownSymbols' ns@ is intended to represent that every 'Symbol' in the
--- type-level list 'ns' is itself a 'KnownSymbol' (meaning, you can use
+-- | @'KnownSymbols' ss@ is intended to represent that every 'Symbol' in the
+-- type-level list 'ss' is itself a 'KnownSymbol' (meaning, you can use
 -- 'symbolVal' to get its corresponding 'String').
 --
 -- You can use 'symbolsVal' to get the corresponding @['String']@ from
--- @'KnownSymbols' ns@.
+-- @'KnownSymbols' ss@.
 --
 -- For reasons discussed further in the documentation for 'KnownNats', this
--- also lets you generate a @'SymbolList' ns@, in order to iterate over the
+-- also lets you generate a @'SymbolList' ss@, in order to iterate over the
 -- type-level list of 'Symbol's and take advantage of their 'KnownSymbol'
 -- instances.
-class KnownSymbols (ns :: [Symbol]) where
-    symbolsVal  :: p ns -> [String]
-    symbolsList :: SymbolList ns
+class KnownSymbols (ss :: [Symbol]) where
+    symbolsVal  :: p ss -> [String]
+    symbolsList :: SymbolList ss
 
 instance KnownSymbols '[] where
     symbolsVal  _ = []
     symbolsList    = ØSL
 
-instance (KnownSymbol n, KnownSymbols ns) => KnownSymbols (n ': ns) where
-    symbolsVal  _ = symbolVal (Proxy :: Proxy n) : symbolsVal (Proxy :: Proxy ns)
+instance (KnownSymbol s, KnownSymbols ss) => KnownSymbols (s ': ss) where
+    symbolsVal  _ = symbolVal (Proxy :: Proxy s) : symbolsVal (Proxy :: Proxy ss)
     symbolsList   = Proxy :<$ symbolsList
 
 -- | Represents unknown type-level lists of 'Symbol's. It's a 'SymbolList',
 -- but you don't know what the list contains at compile-time.
 data SomeSymbols :: * where
-    SomeSymbols :: KnownSymbols ns => !(SymbolList ns) -> SomeSymbols
+    SomeSymbols :: KnownSymbols ss => !(SymbolList ss) -> SomeSymbols
 
 -- | Singleton-esque type for "traversing" over type-level lists of
 -- 'Symbol's. Essentially contains a (value-level) list of @'Proxy' n@s,
@@ -301,68 +312,66 @@ data SomeSymbols :: * where
 -- Typically generated using 'symbolsList'.
 data SymbolList :: [Symbol] -> * where
     ØSL   :: SymbolList '[]
-    (:<$) :: (KnownSymbol n, KnownSymbols ns)
-          => !(Proxy n) -> !(SymbolList ns) -> SymbolList (n ': ns)
+    (:<$) :: (KnownSymbol s, KnownSymbols ss)
+          => !(Proxy s) -> !(SymbolList ss) -> SymbolList (s ': ss)
 
 infixr 5 :<$
 deriving instance Show (SymbolList ns)
 
--- | Utility function for traversing over all of the @'Proxy' n@s in
+-- | Utility function for traversing over all of the @'Proxy' s@s in
 -- a 'SymbolList', each with the corresponding 'KnownSymbol' instance
 -- available.  Gives the the ability to "change" the represented natural
 -- number to a new one, in a 'SomeSymbol'.
 --
--- Can be considered a form of a @Traversal' 'SomeSymbol' 'SomeSymbols'@.
+-- Can be considered a form of a @Traversal' 'SomeSymbols' 'SomeSymbol'@.
 traverseSymbolList
-    :: forall f ns. Applicative f
-    => (forall n. KnownSymbol n => Proxy n -> f SomeSymbol)
-    -> SymbolList ns
+    :: forall f ss. Applicative f
+    => (forall s. KnownSymbol s => Proxy s -> f SomeSymbol)
+    -> SymbolList ss
     -> f SomeSymbols
 traverseSymbolList f = go
   where
     go :: forall ms. SymbolList ms -> f SomeSymbols
-    go nl = case nl of
-              ØSL       -> pure $ SomeSymbols ØSL
-              p :<$ nl' -> merge <$> f p <*> go nl'
+    go = \case
+      ØSL      -> pure $ SomeSymbols ØSL
+      s :<$ ss -> merge <$> f s <*> go ss
     merge :: SomeSymbol -> SomeSymbols -> SomeSymbols
-    merge s sl = case s of
-                   SomeSymbol ps ->
-                     case sl of
-                       SomeSymbols sl' ->
-                         SomeSymbols (ps :<$ sl')
+    merge = \case
+      SomeSymbol s -> \case
+        SomeSymbols ss ->
+          SomeSymbols (s :<$ ss)
 
 -- | Like 'traverseSymbolList', but literally actually a
--- @Traversal' 'SomeSymbol' 'SomeSymbols'@, avoiding the Rank-2 types, so
+-- @Traversal' 'SomeSymbols' 'SomeSymbol'@, avoiding the Rank-2 types, so
 -- is usable with lens-library machinery.
 traverseSymbolList'
     :: forall f. Applicative f
     => (SomeSymbol -> f SomeSymbol)
     -> SomeSymbols
     -> f SomeSymbols
-traverseSymbolList' f ns =
-    case ns of
-      SomeSymbols ns' -> traverseSymbolList (f . SomeSymbol) ns'
+traverseSymbolList' f = \case
+    SomeSymbols ns' -> traverseSymbolList (f . SomeSymbol) ns'
 
--- | Utility function for traversing over all of the @'Proxy' n@s in
+-- | Utility function for traversing over all of the @'Proxy' s@s in
 -- a 'SymbolList', each with the corresponding 'KnownSymbol' instance
 -- available. Results are ignored.
 traverseSymbolList_
-    :: forall f ns. Applicative f
-    => (forall n a. KnownSymbol n => Proxy n -> f a)
-    -> SymbolList ns
+    :: forall f ss. Applicative f
+    => (forall s a. KnownSymbol s => Proxy s -> f a)
+    -> SymbolList ss
     -> f ()
 traverseSymbolList_ f = go
   where
-    go :: forall ms. SymbolList ms -> f ()
-    go nl = case nl of
-              ØSL       -> pure ()
-              p :<$ nl' -> f p *> go nl'
+    go :: forall ts. SymbolList ts -> f ()
+    go = \case
+      ØSL      -> pure ()
+      s :<$ ss -> f s *> go ss
 
 -- | Utility function for \"mapping\" over each of the 'Symbol's in the
 -- 'SymbolList'.
 mapSymbolList
-    :: (forall n. KnownSymbol n => Proxy n -> SomeSymbol)
-    -> SymbolList ns
+    :: (forall s. KnownSymbol s => Proxy s -> SomeSymbol)
+    -> SymbolList ss
     -> SomeSymbols
 mapSymbolList f = runIdentity . traverseSymbolList (Identity . f)
 
@@ -375,30 +384,43 @@ mapSymbolList'
     -> SomeSymbols
 mapSymbolList' f = runIdentity . traverseSymbolList' (Identity . f)
 
+-- | The "eliminator" for 'SymbolList'.  You can think of this as
+-- a dependently typed analogy for a fold.
+elimSymbolList
+    :: forall p ss. ()
+    => p '[]
+    -> (forall t ts. (KnownSymbol t, KnownSymbols ts) => Proxy t -> p ts -> p (t ': ts))
+    -> SymbolList ss
+    -> p ss
+elimSymbolList z s = \case
+    ØSL      -> z
+    n :<$ ns -> s n (elimSymbolList z s ns)
+
+
 -- | List equivalent of 'someNatVal'.  Convert a list of integers into an
 -- unknown type-level list of naturals.  Will return 'Nothing' if any of
 -- the given 'Integer's is negative.
 someSymbolsVal :: [String] -> SomeSymbols
 someSymbolsVal []     = SomeSymbols ØSL
-someSymbolsVal (n:ns) =
-    case someSymbolVal n of
-      SomeSymbol m ->
-        case someSymbolsVal ns of
-          SomeSymbols ms ->
-            SomeSymbols (m :<$ ms)
+someSymbolsVal (s:ss) =
+    case someSymbolVal s of
+      SomeSymbol t ->
+        case someSymbolsVal ss of
+          SomeSymbols ts ->
+            SomeSymbols (t :<$ ts)
 
 -- | List equivalent of 'reifyNat'.  Given a list of integers, takes
--- a function in an "environment" with a @'NatList' ns@ corresponding to
--- the given list, where every @n@ in @ns@ has a 'KnownNat' instance.
+-- a function in an "environment" with a @'SymbolList' ss@ corresponding to
+-- the given list, where every @s@ in @ss@ has a 'KnownSymbol' instance.
 --
 -- Essentially a continuation-style version of 'SomeSymbols'.
 reifySymbols :: [String]
-             -> (forall ns. KnownSymbols ns => SymbolList ns -> r)
+             -> (forall ss. KnownSymbols ss => SymbolList ss -> r)
              -> r
 reifySymbols []     f = f ØSL
-reifySymbols (n:ns) f = reifySymbol n $ \m ->
-                          reifySymbols ns $ \ms ->
-                            f (m :<$ ms)
+reifySymbols (s:ss) f = reifySymbol s $ \t ->
+                          reifySymbols ss $ \ts ->
+                            f (t :<$ ts)
 
 
 -- | Get evidence that the two 'KnownSymbols' lists are actually the "same"
@@ -417,17 +439,14 @@ sameSymbols
     => SymbolList ns
     -> SymbolList ms
     -> Maybe (ns :~: ms)
-sameSymbols ns ms =
-    case ns of
-      ØSL ->
-        case ms of
-          ØSL     -> Just Refl
-          _ :<$ _ -> Nothing
-      n :<$ ns' ->
-        case ms of
-          ØSL     -> Nothing
-          m :<$ ms' -> do
-            Refl <- sameSymbol n m
-            Refl <- sameSymbols ns' ms'
-            return Refl
+sameSymbols = \case
+    ØSL      -> \case
+      ØSL      -> Just Refl
+      _ :<$ _  -> Nothing
+    s :<$ ss -> \case
+      ØSL      -> Nothing
+      t :<$ ts -> do
+        Refl <- sameSymbol s t
+        Refl <- sameSymbols ss ts
+        return Refl
 
