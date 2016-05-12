@@ -1,15 +1,16 @@
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE PolyKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
 
 -- |
 -- Module      : GHC.TypeLits.List
@@ -64,11 +65,12 @@ module GHC.TypeLits.List (
   , mapSymbolList'
   ) where
 
-import Data.Proxy
-import Data.Type.Equality
-import Data.Reflection
-import GHC.TypeLits
 import Data.Functor.Identity
+import Data.Proxy
+import Prelude.Compat
+import Data.Reflection
+import Data.Type.Equality
+import GHC.TypeLits
 
 -- | @'KnownNats' ns@ is intended to represent that every 'Nat' in the
 -- type-level list 'ns' is itself a 'KnownNat' (meaning, you can use
