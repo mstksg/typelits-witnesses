@@ -1,3 +1,10 @@
+0.2.1.0
+=======
+<https://github.com/mstksg/typelits-witnesses/releases/tag/v0.2.1.0>
+
+*   Added "eliminators", a staple of dependently typed programming, for
+    `NatList` and `SymbolList`.
+
 0.2.0.0
 =======
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.2.0.0>
@@ -6,7 +13,7 @@
     break away from the "just add `'`" anti-pattern and to make the function
     name a bit more meaningful.
 
-*   Added `reifyNats'`, a "safe" version of `reifyNats`.  Idenally,
+*   Added `reifyNats'`, a "safe" version of `reifyNats`.  Ideally,
     `reifyNats` should be the safe one, but its connection to `reifyNat` from
     the *reflection* package is very strong and worth preserving, I think.
 

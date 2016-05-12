@@ -9,7 +9,7 @@
 -- Module      : GHC.TypeLits.Witnesses
 -- Description : Instance witnesses for various arithmetic operations on
 --               GHC TypeLits.
--- Copyright   : (c) Justin Le 2015
+-- Copyright   : (c) Justin Le 2016
 -- License     : MIT
 -- Maintainer  : justin@jle.im
 -- Stability   : unstable

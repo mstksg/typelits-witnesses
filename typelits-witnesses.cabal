@@ -1,5 +1,5 @@
 name:                typelits-witnesses
-version:             0.2.0.0
+version:             0.2.1.0
 synopsis:            Existential witnesses, singletons, and classes for operations on GHC TypeLits
 description:         Provides witnesses for 'KnownNat' and 'KnownSymbol'
                      instances for various operations on GHC TypeLits - in
@@ -23,7 +23,7 @@ license:             MIT
 license-file:        LICENSE
 author:              Justin Le
 maintainer:          justin@jle.im
-copyright:           (c) Justin Le 2015
+copyright:           (c) Justin Le 2016
 category:            Data
 build-type:          Simple
 extra-source-files:  README.md

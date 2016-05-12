@@ -17,7 +17,7 @@
 -- Module      : GHC.TypeLits.List
 -- Description : Typeclasses, singletons, and reifiers for type-level lists
 --               of 'Nat's and 'Symbol's.
--- Copyright   : (c) Justin Le 2015
+-- Copyright   : (c) Justin Le 2016
 -- License     : MIT
 -- Maintainer  : justin@jle.im
 -- Stability   : unstable
