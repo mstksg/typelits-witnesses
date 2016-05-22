@@ -21,7 +21,7 @@
 --   
 --   See README for more information.
 @package typelits-witnesses
-@version 0.2.0.0
+@version 0.2.2.0
 
 
 -- | Provides the <a>KnownNats</a> and <a>KnownSymbols</a> typeclasses in
@@ -116,19 +116,25 @@ reifyNats' :: [Integer] -> r -> (forall ns. KnownNats ns => NatList ns -> r) -> 
 --                    -- are the same.
 --     Nothing   -&gt; -- in this branch, they aren't
 --   </pre>
-sameNats :: (KnownNats ns, KnownNats ms) => NatList ns -> NatList ms -> Maybe (ns :~: ms)
+sameNats :: NatList ns -> NatList ms -> Maybe (ns :~: ms)
+
+-- | The "eliminator" for <a>NatList</a>. You can think of this as a
+--   dependently typed analogy for a fold.
+--   
+--   <i>Since 0.2.1.0</i>
+elimNatList :: p '[] -> (forall m ms. (KnownNat m, KnownNats ms) => Proxy m -> p ms -> p (m : ms)) -> NatList ns -> p ns
 
 -- | Utility function for traversing over all of the <tt><a>Proxy</a>
 --   n</tt>s in a <a>NatList</a>, each with the corresponding
 --   <a>KnownNat</a> instance available. Gives the the ability to "change"
 --   the represented natural number to a new one, in a <a>SomeNat</a>.
 --   
---   Can be considered a form of a <tt>Traversal' <a>SomeNat</a>
---   <a>SomeNats</a></tt>.
+--   Can be considered a form of a <tt>Traversal' <a>SomeNats</a>
+--   <a>SomeNat</a></tt>.
 traverseNatList :: Applicative f => (forall n. KnownNat n => Proxy n -> f SomeNat) -> NatList ns -> f SomeNats
 
 -- | Like <a>traverseNatList</a>, but literally actually a <tt>Traversal'
---   <a>SomeNat</a> <a>SomeNats</a></tt>, avoiding the Rank-2 types, so is
+--   <a>SomeNats</a> <a>SomeNat</a></tt>, avoiding the Rank-2 types, so is
 --   usable with lens-library machinery.
 traverseNatList' :: Applicative f => (SomeNat -> f SomeNat) -> SomeNats -> f SomeNats
 
@@ -146,28 +152,28 @@ mapNatList :: (forall n. KnownNat n => Proxy n -> SomeNat) -> NatList ns -> Some
 --   <a>mapNatList</a> would cause problems.
 mapNatList' :: (SomeNat -> SomeNat) -> SomeNats -> SomeNats
 
--- | <tt><a>KnownSymbols</a> ns</tt> is intended to represent that every
---   <a>Symbol</a> in the type-level list <tt>ns</tt> is itself a
+-- | <tt><a>KnownSymbols</a> ss</tt> is intended to represent that every
+--   <a>Symbol</a> in the type-level list <tt>ss</tt> is itself a
 --   <a>KnownSymbol</a> (meaning, you can use <a>symbolVal</a> to get its
 --   corresponding <a>String</a>).
 --   
 --   You can use <a>symbolsVal</a> to get the corresponding
---   <tt>[<a>String</a>]</tt> from <tt><a>KnownSymbols</a> ns</tt>.
+--   <tt>[<a>String</a>]</tt> from <tt><a>KnownSymbols</a> ss</tt>.
 --   
 --   For reasons discussed further in the documentation for
 --   <a>KnownNats</a>, this also lets you generate a <tt><a>SymbolList</a>
---   ns</tt>, in order to iterate over the type-level list of
+--   ss</tt>, in order to iterate over the type-level list of
 --   <a>Symbol</a>s and take advantage of their <a>KnownSymbol</a>
 --   instances.
-class KnownSymbols (ns :: [Symbol])
-symbolsVal :: KnownSymbols ns => p ns -> [String]
-symbolsList :: KnownSymbols ns => SymbolList ns
+class KnownSymbols (ss :: [Symbol])
+symbolsVal :: KnownSymbols ss => p ss -> [String]
+symbolsList :: KnownSymbols ss => SymbolList ss
 
 -- | Represents unknown type-level lists of <a>Symbol</a>s. It's a
 --   <a>SymbolList</a>, but you don't know what the list contains at
 --   compile-time.
 data SomeSymbols :: *
-SomeSymbols :: !(SymbolList ns) -> SomeSymbols
+SomeSymbols :: !(SymbolList ss) -> SomeSymbols
 
 -- | Singleton-esque type for "traversing" over type-level lists of
 --   <a>Symbol</a>s. Essentially contains a (value-level) list of
@@ -178,7 +184,7 @@ SomeSymbols :: !(SymbolList ns) -> SomeSymbols
 --   Typically generated using <a>symbolsList</a>.
 data SymbolList :: [Symbol] -> *
 ØSL :: SymbolList '[]
-(:<$) :: !(Proxy n) -> !(SymbolList ns) -> SymbolList (n : ns)
+(:<$) :: !(Proxy s) -> !(SymbolList ss) -> SymbolList (s : ss)
 
 -- | List equivalent of <a>someNatVal</a>. Convert a list of integers into
 --   an unknown type-level list of naturals. Will return <a>Nothing</a> if
@@ -186,12 +192,12 @@ data SymbolList :: [Symbol] -> *
 someSymbolsVal :: [String] -> SomeSymbols
 
 -- | List equivalent of <a>reifyNat</a>. Given a list of integers, takes a
---   function in an "environment" with a <tt><a>NatList</a> ns</tt>
---   corresponding to the given list, where every <tt>n</tt> in <tt>ns</tt>
---   has a <a>KnownNat</a> instance.
+--   function in an "environment" with a <tt><a>SymbolList</a> ss</tt>
+--   corresponding to the given list, where every <tt>s</tt> in <tt>ss</tt>
+--   has a <a>KnownSymbol</a> instance.
 --   
 --   Essentially a continuation-style version of <a>SomeSymbols</a>.
-reifySymbols :: [String] -> (forall ns. KnownSymbols ns => SymbolList ns -> r) -> r
+reifySymbols :: [String] -> (forall ss. KnownSymbols ss => SymbolList ss -> r) -> r
 
 -- | Get evidence that the two <a>KnownSymbols</a> lists are actually the
 --   "same" list of <tt>Symboles</tt>s (that they were instantiated with
@@ -205,31 +211,37 @@ reifySymbols :: [String] -> (forall ns. KnownSymbols ns => SymbolList ns -> r) -
 --                    -- two [<a>Symbol</a>]s are the same
 --     Nothing   -&gt; -- in this branch, they aren't
 --   </pre>
-sameSymbols :: (KnownSymbols ns, KnownSymbols ms) => SymbolList ns -> SymbolList ms -> Maybe (ns :~: ms)
+sameSymbols :: SymbolList ns -> SymbolList ms -> Maybe (ns :~: ms)
+
+-- | The "eliminator" for <a>SymbolList</a>. You can think of this as a
+--   dependently typed analogy for a fold.
+--   
+--   <i>Since 0.2.1.0</i>
+elimSymbolList :: p '[] -> (forall t ts. (KnownSymbol t, KnownSymbols ts) => Proxy t -> p ts -> p (t : ts)) -> SymbolList ss -> p ss
 
 -- | Utility function for traversing over all of the <tt><a>Proxy</a>
---   n</tt>s in a <a>SymbolList</a>, each with the corresponding
+--   s</tt>s in a <a>SymbolList</a>, each with the corresponding
 --   <a>KnownSymbol</a> instance available. Gives the the ability to
 --   "change" the represented natural number to a new one, in a
 --   <a>SomeSymbol</a>.
 --   
---   Can be considered a form of a <tt>Traversal' <a>SomeSymbol</a>
---   <a>SomeSymbols</a></tt>.
-traverseSymbolList :: Applicative f => (forall n. KnownSymbol n => Proxy n -> f SomeSymbol) -> SymbolList ns -> f SomeSymbols
+--   Can be considered a form of a <tt>Traversal' <a>SomeSymbols</a>
+--   <a>SomeSymbol</a></tt>.
+traverseSymbolList :: Applicative f => (forall s. KnownSymbol s => Proxy s -> f SomeSymbol) -> SymbolList ss -> f SomeSymbols
 
 -- | Like <a>traverseSymbolList</a>, but literally actually a
---   <tt>Traversal' <a>SomeSymbol</a> <a>SomeSymbols</a></tt>, avoiding the
+--   <tt>Traversal' <a>SomeSymbols</a> <a>SomeSymbol</a></tt>, avoiding the
 --   Rank-2 types, so is usable with lens-library machinery.
 traverseSymbolList' :: Applicative f => (SomeSymbol -> f SomeSymbol) -> SomeSymbols -> f SomeSymbols
 
 -- | Utility function for traversing over all of the <tt><a>Proxy</a>
---   n</tt>s in a <a>SymbolList</a>, each with the corresponding
+--   s</tt>s in a <a>SymbolList</a>, each with the corresponding
 --   <a>KnownSymbol</a> instance available. Results are ignored.
-traverseSymbolList_ :: Applicative f => (forall n a. KnownSymbol n => Proxy n -> f a) -> SymbolList ns -> f ()
+traverseSymbolList_ :: Applicative f => (forall s a. KnownSymbol s => Proxy s -> f a) -> SymbolList ss -> f ()
 
 -- | Utility function for "mapping" over each of the <a>Symbol</a>s in the
 --   <a>SymbolList</a>.
-mapSymbolList :: (forall n. KnownSymbol n => Proxy n -> SomeSymbol) -> SymbolList ns -> SomeSymbols
+mapSymbolList :: (forall s. KnownSymbol s => Proxy s -> SomeSymbol) -> SymbolList ss -> SomeSymbols
 
 -- | Like <a>mapSymbolList</a>, but avoids the Rank-2 types, so can be used
 --   with <a>.</a> (function composition) and in other situations where
@@ -240,7 +252,7 @@ instance GHC.Show.Show (GHC.TypeLits.List.SymbolList ns)
 instance GHC.TypeLits.List.KnownNats '[]
 instance (GHC.TypeLits.KnownNat n, GHC.TypeLits.List.KnownNats ns) => GHC.TypeLits.List.KnownNats (n : ns)
 instance GHC.TypeLits.List.KnownSymbols '[]
-instance (GHC.TypeLits.KnownSymbol n, GHC.TypeLits.List.KnownSymbols ns) => GHC.TypeLits.List.KnownSymbols (n : ns)
+instance (GHC.TypeLits.KnownSymbol s, GHC.TypeLits.List.KnownSymbols ss) => GHC.TypeLits.List.KnownSymbols (s : ss)
 
 
 -- | This module provides witnesses for instances that result from the
