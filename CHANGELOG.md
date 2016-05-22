@@ -1,12 +1,22 @@
-0.2.1.0
-=======
+Version 0.2.2.0
+===============
+
+<https://github.com/mstksg/typelits-witnesses/releases/tag/v0.2.2.0>
+
+*   Removed redundant `KnownNats` and `KnownSymbols` constraints for `sameNats`
+    and `sameSymbols`.
+
+Version 0.2.1.0
+===============
+
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.2.1.0>
 
 *   Added "eliminators", a staple of dependently typed programming, for
     `NatList` and `SymbolList`.
 
-0.2.0.0
-=======
+Version 0.2.0.0
+===============
+
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.2.0.0>
 
 *   **Breaking**: Changed the name of `someNatsVal'` to `someNatsValPos`, to
@@ -17,8 +27,9 @@
     `reifyNats` should be the safe one, but its connection to `reifyNat` from
     the *reflection* package is very strong and worth preserving, I think.
 
-0.1.2.0
-=======
+Version 0.1.2.0
+===============
+
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.1.2.0>
 
 *   Added `mapNatList'` and `mapSymbolList'` companions to `mapNatList` and
@@ -30,21 +41,25 @@
     `sameSymbol`.  They provide witnesses to GHC that `KnownNat`s passed in
     are both the same.
 
-=======
+Version 0.1.1.0
+===============
+
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.1.1.0>
 
 *   Added strict fields to `NatList`, `SomeNats`, `SymbolList`, and
     `SomeSymbols`.  It really doesn't make any sense for them to be lazy.
 
-0.1.0.1
-=======
+Version 0.1.0.1
+===============
+
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.1.0.1>
 
 *   Added README to the cabal package as an extra source file, for viewing on
     Hackage.
 
-0.1.0.0
-=======
+Version 0.1.0.0
+===============
+
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.1.0.0>
 
 *   Initial version.

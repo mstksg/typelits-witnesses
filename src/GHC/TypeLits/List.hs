@@ -259,8 +259,7 @@ someNatsValPos ns = reifyNats ns SomeNats
 --   Nothing   -> -- in this branch, they aren't
 -- @
 sameNats
-    :: (KnownNats ns, KnownNats ms)
-    => NatList ns
+    :: NatList ns
     -> NatList ms
     -> Maybe (ns :~: ms)
 sameNats = \case
@@ -435,8 +434,7 @@ reifySymbols (s:ss) f = reifySymbol s $ \t ->
 --   Nothing   -> -- in this branch, they aren't
 -- @
 sameSymbols
-    :: (KnownSymbols ns, KnownSymbols ms)
-    => SymbolList ns
+    :: SymbolList ns
     -> SymbolList ms
     -> Maybe (ns :~: ms)
 sameSymbols = \case
