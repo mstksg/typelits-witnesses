@@ -172,6 +172,8 @@ traverseNatList_ f = go
 
 -- | The "eliminator" for 'NatList'.  You can think of this as
 -- a dependently typed analogy for a fold.
+--
+-- /Since 0.2.1.0/
 elimNatList
     :: forall p ns. ()
     => p '[]
@@ -385,6 +387,8 @@ mapSymbolList' f = runIdentity . traverseSymbolList' (Identity . f)
 
 -- | The "eliminator" for 'SymbolList'.  You can think of this as
 -- a dependently typed analogy for a fold.
+--
+-- /Since 0.2.1.0/
 elimSymbolList
     :: forall p ss. ()
     => p '[]
