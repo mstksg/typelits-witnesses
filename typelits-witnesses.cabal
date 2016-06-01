@@ -37,6 +37,7 @@ source-repository head
 library
   exposed-modules:     GHC.TypeLits.Witnesses
                        GHC.TypeLits.List
+                       GHC.TypeLits.Compare
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.7 && <5
