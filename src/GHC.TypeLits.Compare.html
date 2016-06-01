@@ -5,18 +5,23 @@
 </span><a name="line-5"></a><span class="hs-pragma">{-# LANGUAGE ScopedTypeVariables #-}</span><span>
 </span><a name="line-6"></a><span class="hs-pragma">{-# LANGUAGE TypeOperators #-}</span><span>
 </span><a name="line-7"></a><span>
-</span><a name="line-8"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">GHC</span><span class="hs-operator">.</span><span class="hs-identifier">TypeLits</span><span class="hs-operator">.</span><span class="hs-identifier">Compare</span><span> </span><span class="hs-keyword">where</span><span>
-</span><a name="line-9"></a><span>
-</span><a name="line-10"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Type</span><span class="hs-operator">.</span><span class="hs-identifier">Equality</span><span>
-</span><a name="line-11"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Proxy</span><span>
-</span><a name="line-12"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">GHC</span><span class="hs-operator">.</span><span class="hs-identifier">TypeLits</span><span>
-</span><a name="line-13"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Unsafe</span><span class="hs-operator">.</span><span class="hs-identifier">Coerce</span><span>
+</span><a name="line-8"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">GHC</span><span class="hs-operator">.</span><span class="hs-identifier">TypeLits</span><span class="hs-operator">.</span><span class="hs-identifier">Compare</span><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">(</span><span> </span><span class="hs-special">(</span><a href="GHC.TypeLits.Compare.html#%25%3C%3D%3F"><span class="hs-operator hs-var">%&lt;=?</span></a><span class="hs-special">)</span><span>
+</span><a name="line-10"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.Compare.html#isLE"><span class="hs-identifier hs-var">isLE</span></a><span>
+</span><a name="line-11"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.Compare.html#isNLE"><span class="hs-identifier hs-var">isNLE</span></a><span>
+</span><a name="line-12"></a><span>  </span><span class="hs-special">)</span><span>
+</span><a name="line-13"></a><span>  </span><span class="hs-keyword">where</span><span>
 </span><a name="line-14"></a><span>
-</span><a name="line-15"></a><span class="hs-identifier">isLE</span><span>
-</span><a name="line-16"></a><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">KnownNat</span><span> </span><a href="#local-1627406638"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">KnownNat</span><span> </span><a href="#local-1627406639"><span class="hs-identifier hs-type">n</span></a><span class="hs-special">)</span><span>
-</span><a name="line-17"></a><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-identifier hs-type">Proxy</span><span> </span><a href="#local-1627406638"><span class="hs-identifier hs-type">m</span></a><span>
-</span><a name="line-18"></a><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Proxy</span><span> </span><a href="#local-1627406639"><span class="hs-identifier hs-type">n</span></a><span>
-</span><a name="line-19"></a><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Maybe</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><a href="#local-1627406638"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-operator">&lt;=?</span><span> </span><a href="#local-1627406639"><span class="hs-identifier hs-type">n</span></a><span class="hs-special">)</span><span> </span><span class="hs-operator">:~:</span><span> </span><span class="hs-char">'True)
+</span><a name="line-15"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Type</span><span class="hs-operator">.</span><span class="hs-identifier">Equality</span><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Proxy</span><span>
+</span><a name="line-17"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">GHC</span><span class="hs-operator">.</span><span class="hs-identifier">TypeLits</span><span>
+</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Unsafe</span><span class="hs-operator">.</span><span class="hs-identifier">Coerce</span><span>
+</span><a name="line-19"></a><span>
+</span><a name="line-20"></a><span class="hs-identifier">isLE</span><span>
+</span><a name="line-21"></a><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">KnownNat</span><span> </span><a href="#local-1627406638"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">KnownNat</span><span> </span><a href="#local-1627406639"><span class="hs-identifier hs-type">n</span></a><span class="hs-special">)</span><span>
+</span><a name="line-22"></a><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-identifier hs-type">Proxy</span><span> </span><a href="#local-1627406638"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-23"></a><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Proxy</span><span> </span><a href="#local-1627406639"><span class="hs-identifier hs-type">n</span></a><span>
+</span><a name="line-24"></a><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Maybe</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><a href="#local-1627406638"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-operator">&lt;=?</span><span> </span><a href="#local-1627406639"><span class="hs-identifier hs-type">n</span></a><span class="hs-special">)</span><span> </span><span class="hs-operator">:~:</span><span> </span><span class="hs-char">'True)
 isLE m n = case m %&lt;=? n of
              Right Refl -&gt; Just Refl
              Left _     -&gt; Nothing
