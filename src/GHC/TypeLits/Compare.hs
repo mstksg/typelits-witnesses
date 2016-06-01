@@ -5,7 +5,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators #-}
 
-module GHC.TypeLits.Compare where
+module GHC.TypeLits.Compare
+  ( (%<=?)
+  , isLE
+  , isNLE
+  )
+  where
 
 import Data.Type.Equality
 import Data.Proxy
@@ -17,7 +22,7 @@ isLE
     => Proxy m
     -> Proxy n
     -> Maybe ((m <=? n) :~: 'True)
-isLE m n = case m %<= n of
+isLE m n = case m %<=? n of
              Right Refl -> Just Refl
              Left _     -> Nothing
 
@@ -26,15 +31,15 @@ isNLE
     => Proxy m
     -> Proxy n
     -> Maybe ((m <=? n) :~: 'False)
-isNLE m n = case m %<= n of
+isNLE m n = case m %<=? n of
               Left Refl -> Just Refl
               Right _   -> Nothing
 
-(%<=)
-    :: (KnownNat m, KnownNat n)
-    => Proxy m
-    -> Proxy n
-    -> Either ((m <=? n) :~: 'False) ((m <=? n) :~: 'True)
-m %<= n | natVal m <= natVal n = Right (unsafeCoerce Refl)
-        | otherwise            = Left (unsafeCoerce Refl)
+(%<=?)
+     :: (KnownNat m, KnownNat n)
+     => Proxy m
+     -> Proxy n
+     -> Either ((m <=? n) :~: 'False) ((m <=? n) :~: 'True)
+m %<=? n | natVal m <= natVal n = Right (unsafeCoerce Refl)
+         | otherwise            = Left (unsafeCoerce Refl)
 
