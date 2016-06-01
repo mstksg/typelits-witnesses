@@ -1,0 +1,455 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE ConstraintKinds #-}</span><span>
+</span><a name="line-2"></a><span class="hs-pragma">{-# LANGUAGE DataKinds #-}</span><span>
+</span><a name="line-3"></a><span class="hs-pragma">{-# LANGUAGE FlexibleContexts #-}</span><span>
+</span><a name="line-4"></a><span class="hs-pragma">{-# LANGUAGE GADTs #-}</span><span>
+</span><a name="line-5"></a><span class="hs-pragma">{-# LANGUAGE KindSignatures #-}</span><span>
+</span><a name="line-6"></a><span class="hs-pragma">{-# LANGUAGE LambdaCase #-}</span><span>
+</span><a name="line-7"></a><span class="hs-pragma">{-# LANGUAGE NoImplicitPrelude #-}</span><span>
+</span><a name="line-8"></a><span class="hs-pragma">{-# LANGUAGE PolyKinds #-}</span><span>
+</span><a name="line-9"></a><span class="hs-pragma">{-# LANGUAGE RankNTypes #-}</span><span>
+</span><a name="line-10"></a><span class="hs-pragma">{-# LANGUAGE ScopedTypeVariables #-}</span><span>
+</span><a name="line-11"></a><span class="hs-pragma">{-# LANGUAGE StandaloneDeriving #-}</span><span>
+</span><a name="line-12"></a><span class="hs-pragma">{-# LANGUAGE TypeFamilies #-}</span><span>
+</span><a name="line-13"></a><span class="hs-pragma">{-# LANGUAGE TypeOperators #-}</span><span>
+</span><a name="line-14"></a><span class="hs-pragma">{-# LANGUAGE UndecidableInstances #-}</span><span>
+</span><a name="line-15"></a><span>
+</span><a name="line-16"></a><span class="hs-comment">-- |</span><span>
+</span><a name="line-17"></a><span class="hs-comment">-- Module      : GHC.TypeLits.List</span><span>
+</span><a name="line-18"></a><span class="hs-comment">-- Description : Typeclasses, singletons, and reifiers for type-level lists</span><span>
+</span><a name="line-19"></a><span class="hs-comment">--               of 'Nat's and 'Symbol's.</span><span>
+</span><a name="line-20"></a><span class="hs-comment">-- Copyright   : (c) Justin Le 2016</span><span>
+</span><a name="line-21"></a><span class="hs-comment">-- License     : MIT</span><span>
+</span><a name="line-22"></a><span class="hs-comment">-- Maintainer  : justin@jle.im</span><span>
+</span><a name="line-23"></a><span class="hs-comment">-- Stability   : unstable</span><span>
+</span><a name="line-24"></a><span class="hs-comment">-- Portability : non-portable</span><span>
+</span><a name="line-25"></a><span class="hs-comment">--</span><span>
+</span><a name="line-26"></a><span class="hs-comment">--</span><span>
+</span><a name="line-27"></a><span class="hs-comment">-- Provides the 'KnownNats' and 'KnownSymbols' typeclasses in analogy to</span><span>
+</span><a name="line-28"></a><span class="hs-comment">-- 'KnownNat' and 'KnownSymbol' from &quot;GHC.TypeLits&quot;.  Also provides</span><span>
+</span><a name="line-29"></a><span class="hs-comment">-- singleton-esque structures for traversing over type-level lists of</span><span>
+</span><a name="line-30"></a><span class="hs-comment">-- 'Nat's and 'Symbol's.  Comes with continuation-style reifiers and</span><span>
+</span><a name="line-31"></a><span class="hs-comment">-- existential types for dependent typing usage, and as an analogy with</span><span>
+</span><a name="line-32"></a><span class="hs-comment">-- 'SomeNat' and 'SomeSymbol'.</span><span>
+</span><a name="line-33"></a><span class="hs-comment">--</span><span>
+</span><a name="line-34"></a><span class="hs-comment">-- See typeclass documentations and README for more information.</span><span>
+</span><a name="line-35"></a><span>
+</span><a name="line-36"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">GHC</span><span class="hs-operator">.</span><span class="hs-identifier">TypeLits</span><span class="hs-operator">.</span><span class="hs-identifier">List</span><span> </span><span class="hs-special">(</span><span>
+</span><a name="line-37"></a><span>  </span><span class="hs-comment">-- * 'KnownNats'</span><span>
+</span><a name="line-38"></a><span>    </span><a href="GHC.TypeLits.List.html#KnownNats"><span class="hs-identifier hs-type">KnownNats</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-39"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#SomeNats"><span class="hs-identifier hs-type">SomeNats</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-40"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#NatList"><span class="hs-identifier hs-type">NatList</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-41"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#someNatsVal"><span class="hs-identifier hs-var">someNatsVal</span></a><span>
+</span><a name="line-42"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#someNatsValPos"><span class="hs-identifier hs-var">someNatsValPos</span></a><span>
+</span><a name="line-43"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#reifyNats"><span class="hs-identifier hs-var">reifyNats</span></a><span>
+</span><a name="line-44"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#reifyNats%27"><span class="hs-identifier hs-var">reifyNats'</span></a><span>
+</span><a name="line-45"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#sameNats"><span class="hs-identifier hs-var">sameNats</span></a><span>
+</span><a name="line-46"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#elimNatList"><span class="hs-identifier hs-var">elimNatList</span></a><span>
+</span><a name="line-47"></a><span>  </span><span class="hs-comment">-- ** Traversals</span><span>
+</span><a name="line-48"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#traverseNatList"><span class="hs-identifier hs-var">traverseNatList</span></a><span>
+</span><a name="line-49"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#traverseNatList%27"><span class="hs-identifier hs-var">traverseNatList'</span></a><span>
+</span><a name="line-50"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#traverseNatList_"><span class="hs-identifier hs-var">traverseNatList_</span></a><span>
+</span><a name="line-51"></a><span>  </span><span class="hs-comment">-- *** Maps</span><span>
+</span><a name="line-52"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#mapNatList"><span class="hs-identifier hs-var">mapNatList</span></a><span>
+</span><a name="line-53"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#mapNatList%27"><span class="hs-identifier hs-var">mapNatList'</span></a><span>
+</span><a name="line-54"></a><span>  </span><span class="hs-comment">-- * 'KnownSymbols'</span><span>
+</span><a name="line-55"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#KnownSymbols"><span class="hs-identifier hs-type">KnownSymbols</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-56"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#SomeSymbols"><span class="hs-identifier hs-type">SomeSymbols</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-57"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#SymbolList"><span class="hs-identifier hs-type">SymbolList</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-58"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#someSymbolsVal"><span class="hs-identifier hs-var">someSymbolsVal</span></a><span>
+</span><a name="line-59"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#reifySymbols"><span class="hs-identifier hs-var">reifySymbols</span></a><span>
+</span><a name="line-60"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#sameSymbols"><span class="hs-identifier hs-var">sameSymbols</span></a><span>
+</span><a name="line-61"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#elimSymbolList"><span class="hs-identifier hs-var">elimSymbolList</span></a><span>
+</span><a name="line-62"></a><span>  </span><span class="hs-comment">-- ** Traversals</span><span>
+</span><a name="line-63"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#traverseSymbolList"><span class="hs-identifier hs-var">traverseSymbolList</span></a><span>
+</span><a name="line-64"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#traverseSymbolList%27"><span class="hs-identifier hs-var">traverseSymbolList'</span></a><span>
+</span><a name="line-65"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#traverseSymbolList_"><span class="hs-identifier hs-var">traverseSymbolList_</span></a><span>
+</span><a name="line-66"></a><span>  </span><span class="hs-comment">-- *** Maps</span><span>
+</span><a name="line-67"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#mapSymbolList"><span class="hs-identifier hs-var">mapSymbolList</span></a><span>
+</span><a name="line-68"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.List.html#mapSymbolList%27"><span class="hs-identifier hs-var">mapSymbolList'</span></a><span>
+</span><a name="line-69"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-70"></a><span>
+</span><a name="line-71"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Functor</span><span class="hs-operator">.</span><span class="hs-identifier">Identity</span><span>
+</span><a name="line-72"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Proxy</span><span>
+</span><a name="line-73"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Prelude</span><span class="hs-operator">.</span><span class="hs-identifier">Compat</span><span>
+</span><a name="line-74"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Reflection</span><span>
+</span><a name="line-75"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Type</span><span class="hs-operator">.</span><span class="hs-identifier">Equality</span><span>
+</span><a name="line-76"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">GHC</span><span class="hs-operator">.</span><span class="hs-identifier">TypeLits</span><span>
+</span><a name="line-77"></a><span>
+</span><a name="line-78"></a><span class="hs-comment">-- | @'KnownNats' ns@ is intended to represent that every 'Nat' in the</span><span>
+</span><a name="line-79"></a><span class="hs-comment">-- type-level list 'ns' is itself a 'KnownNat' (meaning, you can use</span><span>
+</span><a name="line-80"></a><span class="hs-comment">-- 'natVal' to get its corresponding 'Integer').</span><span>
+</span><a name="line-81"></a><span class="hs-comment">--</span><span>
+</span><a name="line-82"></a><span class="hs-comment">-- In practice, just knowing that every item has a 'KnownNat' instance is</span><span>
+</span><a name="line-83"></a><span class="hs-comment">-- not enough; it's nice, but unless you're able to &quot;iterate&quot; over every</span><span>
+</span><a name="line-84"></a><span class="hs-comment">-- 'Nat' in the list, it's of limited use.  That's why this class also</span><span>
+</span><a name="line-85"></a><span class="hs-comment">-- provides a constructor for @'NatList' ns@, so that you can produce</span><span>
+</span><a name="line-86"></a><span class="hs-comment">-- a 'NatList' for every @'KnownNat' ns@, which you can iterate over to get</span><span>
+</span><a name="line-87"></a><span class="hs-comment">-- @'Proxy' n@s for every 'n' in 'ns' along with the @'KnownNat' n@</span><span>
+</span><a name="line-88"></a><span class="hs-comment">-- instances.</span><span>
+</span><a name="line-89"></a><span class="hs-comment">--</span><span>
+</span><a name="line-90"></a><span class="hs-comment">-- It also has an analogy to 'natVal', 'natsVal', which lets you get a list</span><span>
+</span><a name="line-91"></a><span class="hs-comment">-- of the represented 'Integer's for, say, @'Proxy' [1,2,3]@.</span><span>
+</span><a name="line-92"></a><span class="hs-keyword">class</span><span> </span><a name="KnownNats"><a href="GHC.TypeLits.List.html#KnownNats"><span class="hs-identifier">KnownNats</span></a></a><span> </span><span class="hs-special">(</span><a name="local-1627418155"><a href="#local-1627418155"><span class="hs-identifier">ns</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-identifier hs-type">Nat</span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-93"></a><span>    </span><span class="hs-identifier">natsVal</span><span>  </span><span class="hs-glyph">::</span><span> </span><a href="#local-1627418156"><span class="hs-identifier hs-type">p</span></a><span> </span><a href="#local-1627418155"><span class="hs-identifier hs-type">ns</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-identifier hs-type">Integer</span><span class="hs-special">]</span><span>
+</span><a name="line-94"></a><span>    </span><span class="hs-identifier">natsList</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="GHC.TypeLits.List.html#NatList"><span class="hs-identifier hs-type">NatList</span></a><span> </span><a href="#local-1627418155"><span class="hs-identifier hs-type">ns</span></a><span>
+</span><a name="line-95"></a><span>
+</span><a name="line-96"></a><span class="hs-keyword">instance</span><span> </span><a href="GHC.TypeLits.List.html#KnownNats"><span class="hs-identifier hs-type">KnownNats</span></a><span> </span><span class="hs-char">'[] where
+    natsVal  _ = []
+    natsList   = &#216;NL
+
+instance (KnownNat n, KnownNats ns) =&gt; KnownNats (n ': ns) where
+    natsVal  _ = natVal (Proxy :: Proxy n) : natsVal (Proxy :: Proxy ns)
+    natsList   = Proxy :&lt;# natsList
+
+-- | Represents unknown type-level lists of type-level natural numbers.
+-- It's a 'NatList', but you don't know what the list contains at
+-- compile-time.
+data SomeNats :: * where
+    SomeNats :: KnownNats ns =&gt; !(NatList ns) -&gt; SomeNats
+
+-- | Singleton-esque type for &quot;traversing&quot; over type-level lists of 'Nat's.
+-- Essentially contains a (value-level) list of @'Proxy' n@s, but each 'n'
+-- has a 'KnownNat' instance for you to use.  At runtime (after type
+-- erasure), is more or less equivalent to a @['Integer']@.
+--
+-- Typically generated using 'natsList'.
+data NatList :: [Nat] -&gt; * where
+    &#216;NL   :: NatList '[]
+    (:&lt;#) :: (KnownNat n, KnownNats ns)
+          =&gt; !(Proxy n) -&gt; !(NatList ns) -&gt; NatList (n ': ns)
+
+infixr 5 :&lt;#
+deriving instance Show (NatList ns)
+
+-- | Utility function for traversing over all of the @'Proxy' n@s in
+-- a 'NatList', each with the corresponding 'KnownNat' instance available.
+-- Gives the the ability to &quot;change&quot; the represented natural number to
+-- a new one, in a 'SomeNat'.
+--
+-- Can be considered a form of a @Traversal' 'SomeNats' 'SomeNat'@.
+traverseNatList
+    :: forall f ns. Applicative f
+    =&gt; (forall n. KnownNat n =&gt; Proxy n -&gt; f SomeNat)
+    -&gt; NatList ns
+    -&gt; f SomeNats
+traverseNatList f = go
+  where
+    go :: forall ms. NatList ms -&gt; f SomeNats
+    go = \case
+      &#216;NL      -&gt; pure $ SomeNats &#216;NL
+      n :&lt;# ns -&gt; merge &lt;$&gt; f n &lt;*&gt; go ns
+    merge :: SomeNat -&gt; SomeNats -&gt; SomeNats
+    merge = \case
+      SomeNat n -&gt; \case
+        SomeNats ns -&gt;
+          SomeNats (n :&lt;# ns)
+
+-- | Like 'traverseNatList', but literally actually a @Traversal'
+-- 'SomeNats' 'SomeNat'@, avoiding the Rank-2 types, so is usable with
+-- lens-library machinery.
+traverseNatList'
+    :: forall f. Applicative f
+    =&gt; (SomeNat -&gt; f SomeNat)
+    -&gt; SomeNats
+    -&gt; f SomeNats
+traverseNatList' f = \case
+    SomeNats ns -&gt; traverseNatList (f . SomeNat) ns
+
+-- | Utility function for traversing over all of the @'Proxy' n@s in
+-- a 'NatList', each with the corresponding 'KnownNat' instance available.
+-- Results are ignored.
+traverseNatList_
+    :: forall f a ns. Applicative f
+    =&gt; (forall n. KnownNat n =&gt; Proxy n -&gt; f a)
+    -&gt; NatList ns
+    -&gt; f ()
+traverseNatList_ f = go
+  where
+    go :: forall ms. NatList ms -&gt; f ()
+    go = \case
+      &#216;NL       -&gt; pure ()
+      n :&lt;# ns -&gt; f n *&gt; go ns
+
+-- | The &quot;eliminator&quot; for 'NatList'.  You can think of this as
+-- a dependently typed analogy for a fold.
+--
+-- /Since 0.2.1.0/
+elimNatList
+    :: forall p ns. ()
+    =&gt; p '[]
+    -&gt; (forall m ms. (KnownNat m, KnownNats ms) =&gt; Proxy m -&gt; p ms -&gt; p (m ': ms))
+    -&gt; NatList ns
+    -&gt; p ns
+elimNatList z s = \case
+    &#216;NL      -&gt; z
+    n :&lt;# ns -&gt; s n (elimNatList z s ns)
+
+
+-- | Utility function for \&quot;mapping\&quot; over each of the 'Nat's in the
+-- 'NatList'.
+mapNatList
+    :: (forall n. KnownNat n =&gt; Proxy n -&gt; SomeNat)
+    -&gt; NatList ns
+    -&gt; SomeNats
+mapNatList f = runIdentity . traverseNatList (Identity . f)
+
+-- | Like 'mapNatList', but avoids the Rank-2 types, so can be used with
+-- '.' (function composition) and in other situations where 'mapNatList'
+-- would cause problems.
+mapNatList'
+    :: (SomeNat -&gt; SomeNat)
+    -&gt; SomeNats
+    -&gt; SomeNats
+mapNatList' f = runIdentity . traverseNatList' (Identity . f)
+
+-- | List equivalent of 'someNatVal'.  Convert a list of integers into an
+-- unknown type-level list of naturals.  Will return 'Nothing' if any of
+-- the given 'Integer's is negative.
+someNatsVal :: [Integer] -&gt; Maybe SomeNats
+someNatsVal []     = Just (SomeNats &#216;NL)
+someNatsVal (n:ns) = do
+    SomeNat  m  &lt;- someNatVal n
+    SomeNats ms &lt;- someNatsVal ns
+    return $ SomeNats (m :&lt;# ms)
+
+-- | List equivalent of 'reifyNat'.  Given a list of integers, takes
+-- a function in an &quot;environment&quot; with a @'NatList' ns@ corresponding to
+-- the given list, where every @n@ in @ns@ has a 'KnownNat' instance.
+--
+-- Essentially a continuation-style version of 'SomeNats'.
+--
+-- Be aware that this also produces @'KnownNat' n@s where @n@ is negative,
+-- without complaining.  To be consistent, within the library, this
+-- /should/ be called @reifyNatsPos@; however, the naming choice is for
+-- consistency with 'reifyNat' from the /reflections/ package.  Use
+-- 'reifyNats'' for a &quot;safe&quot; version.
+reifyNats :: [Integer] -&gt; (forall ns. KnownNats ns =&gt; NatList ns -&gt; r) -&gt; r
+reifyNats []     f = f &#216;NL
+reifyNats (n:ns) f = reifyNat n $ \m -&gt;
+                       reifyNats ns $ \ms -&gt;
+                         f (m :&lt;# ms)
+
+-- | &quot;Safe&quot; version of 'reifyNats', which will only run the continuation if
+-- every 'Integer' in the list is non-negative.  If not, then returns
+-- the given &quot;default&quot; value instead.
+reifyNats'
+    :: [Integer]
+    -&gt; r
+    -&gt; (forall ns. KnownNats ns =&gt; NatList ns -&gt; r)
+    -&gt; r
+reifyNats' ns d f =
+    case someNatsVal ns of
+      Just (SomeNats ms) -&gt; f ms
+      Nothing            -&gt; d
+
+
+-- | Like 'someNatsVal', but will also go ahead and produce 'KnownNat's
+-- whose integer values are negative.  It won't ever error on producing
+-- them, but extra care must be taken when using the produced 'SomeNat's.
+someNatsValPos :: [Integer] -&gt; SomeNats
+someNatsValPos ns = reifyNats ns SomeNats
+
+-- | Get evidence that the two 'KnownNats' lists are actually the &quot;same&quot;
+-- list of 'Nat's (that they were instantiated with the same numbers).
+--
+-- Essentialy runs 'sameNat' over the lists:
+--
+-- @
+-- case 'sameNats' ns ms of
+--   Just 'Refl' -&gt; -- in this branch, GHC recognizes that the two ['Nat']s
+--                  -- are the same.
+--   Nothing   -&gt; -- in this branch, they aren't
+-- @
+sameNats
+    :: NatList ns
+    -&gt; NatList ms
+    -&gt; Maybe (ns :~: ms)
+sameNats = \case
+    &#216;NL      -&gt; \case
+      &#216;NL      -&gt; Just Refl
+      _ :&lt;# _  -&gt; Nothing
+    n :&lt;# ns -&gt; \case
+      &#216;NL      -&gt; Nothing
+      m :&lt;# ms -&gt; do
+        Refl &lt;- sameNat n m
+        Refl &lt;- sameNats ns ms
+        return Refl
+
+
+
+-- | @'KnownSymbols' ss@ is intended to represent that every 'Symbol' in the
+-- type-level list 'ss' is itself a 'KnownSymbol' (meaning, you can use
+-- 'symbolVal' to get its corresponding 'String').
+--
+-- You can use 'symbolsVal' to get the corresponding @['String']@ from
+-- @'KnownSymbols' ss@.
+--
+-- For reasons discussed further in the documentation for 'KnownNats', this
+-- also lets you generate a @'SymbolList' ss@, in order to iterate over the
+-- type-level list of 'Symbol's and take advantage of their 'KnownSymbol'
+-- instances.
+class KnownSymbols (ss :: [Symbol]) where
+    symbolsVal  :: p ss -&gt; [String]
+    symbolsList :: SymbolList ss
+
+instance KnownSymbols '[] where
+    symbolsVal  _ = []
+    symbolsList    = &#216;SL
+
+instance (KnownSymbol s, KnownSymbols ss) =&gt; KnownSymbols (s ': ss) where
+    symbolsVal  _ = symbolVal (Proxy :: Proxy s) : symbolsVal (Proxy :: Proxy ss)
+    symbolsList   = Proxy :&lt;$ symbolsList
+
+-- | Represents unknown type-level lists of 'Symbol's. It's a 'SymbolList',
+-- but you don't know what the list contains at compile-time.
+data SomeSymbols :: * where
+    SomeSymbols :: KnownSymbols ss =&gt; !(SymbolList ss) -&gt; SomeSymbols
+
+-- | Singleton-esque type for &quot;traversing&quot; over type-level lists of
+-- 'Symbol's. Essentially contains a (value-level) list of @'Proxy' n@s,
+-- but each 'n' has a 'KnownSymbol' instance for you to use.  At runtime
+-- (after type erasure), is more or less equivalent to a @['String']@.
+--
+-- Typically generated using 'symbolsList'.
+data SymbolList :: [Symbol] -&gt; * where
+    &#216;SL   :: SymbolList '[]
+    (:&lt;$) :: (KnownSymbol s, KnownSymbols ss)
+          =&gt; !(Proxy s) -&gt; !(SymbolList ss) -&gt; SymbolList (s ': ss)
+
+infixr 5 :&lt;$
+deriving instance Show (SymbolList ns)
+
+-- | Utility function for traversing over all of the @'Proxy' s@s in
+-- a 'SymbolList', each with the corresponding 'KnownSymbol' instance
+-- available.  Gives the the ability to &quot;change&quot; the represented natural
+-- number to a new one, in a 'SomeSymbol'.
+--
+-- Can be considered a form of a @Traversal' 'SomeSymbols' 'SomeSymbol'@.
+traverseSymbolList
+    :: forall f ss. Applicative f
+    =&gt; (forall s. KnownSymbol s =&gt; Proxy s -&gt; f SomeSymbol)
+    -&gt; SymbolList ss
+    -&gt; f SomeSymbols
+traverseSymbolList f = go
+  where
+    go :: forall ms. SymbolList ms -&gt; f SomeSymbols
+    go = \case
+      &#216;SL      -&gt; pure $ SomeSymbols &#216;SL
+      s :&lt;$ ss -&gt; merge &lt;$&gt; f s &lt;*&gt; go ss
+    merge :: SomeSymbol -&gt; SomeSymbols -&gt; SomeSymbols
+    merge = \case
+      SomeSymbol s -&gt; \case
+        SomeSymbols ss -&gt;
+          SomeSymbols (s :&lt;$ ss)
+
+-- | Like 'traverseSymbolList', but literally actually a
+-- @Traversal' 'SomeSymbols' 'SomeSymbol'@, avoiding the Rank-2 types, so
+-- is usable with lens-library machinery.
+traverseSymbolList'
+    :: forall f. Applicative f
+    =&gt; (SomeSymbol -&gt; f SomeSymbol)
+    -&gt; SomeSymbols
+    -&gt; f SomeSymbols
+traverseSymbolList' f = \case
+    SomeSymbols ns' -&gt; traverseSymbolList (f . SomeSymbol) ns'
+
+-- | Utility function for traversing over all of the @'Proxy' s@s in
+-- a 'SymbolList', each with the corresponding 'KnownSymbol' instance
+-- available. Results are ignored.
+traverseSymbolList_
+    :: forall f ss. Applicative f
+    =&gt; (forall s a. KnownSymbol s =&gt; Proxy s -&gt; f a)
+    -&gt; SymbolList ss
+    -&gt; f ()
+traverseSymbolList_ f = go
+  where
+    go :: forall ts. SymbolList ts -&gt; f ()
+    go = \case
+      &#216;SL      -&gt; pure ()
+      s :&lt;$ ss -&gt; f s *&gt; go ss
+
+-- | Utility function for \&quot;mapping\&quot; over each of the 'Symbol's in the
+-- 'SymbolList'.
+mapSymbolList
+    :: (forall s. KnownSymbol s =&gt; Proxy s -&gt; SomeSymbol)
+    -&gt; SymbolList ss
+    -&gt; SomeSymbols
+mapSymbolList f = runIdentity . traverseSymbolList (Identity . f)
+
+-- | Like 'mapSymbolList', but avoids the Rank-2 types, so can be used with
+-- '.' (function composition) and in other situations where 'mapSymbolList'
+-- would cause problems.
+mapSymbolList'
+    :: (SomeSymbol -&gt; SomeSymbol)
+    -&gt; SomeSymbols
+    -&gt; SomeSymbols
+mapSymbolList' f = runIdentity . traverseSymbolList' (Identity . f)
+
+-- | The &quot;eliminator&quot; for 'SymbolList'.  You can think of this as
+-- a dependently typed analogy for a fold.
+--
+-- /Since 0.2.1.0/
+elimSymbolList
+    :: forall p ss. ()
+    =&gt; p '[]
+    -&gt; (forall t ts. (KnownSymbol t, KnownSymbols ts) =&gt; Proxy t -&gt; p ts -&gt; p (t ': ts))
+    -&gt; SymbolList ss
+    -&gt; p ss
+elimSymbolList z s = \case
+    &#216;SL      -&gt; z
+    n :&lt;$ ns -&gt; s n (elimSymbolList z s ns)
+
+
+-- | List equivalent of 'someNatVal'.  Convert a list of integers into an
+-- unknown type-level list of naturals.  Will return 'Nothing' if any of
+-- the given 'Integer's is negative.
+someSymbolsVal :: [String] -&gt; SomeSymbols
+someSymbolsVal []     = SomeSymbols &#216;SL
+someSymbolsVal (s:ss) =
+    case someSymbolVal s of
+      SomeSymbol t -&gt;
+        case someSymbolsVal ss of
+          SomeSymbols ts -&gt;
+            SomeSymbols (t :&lt;$ ts)
+
+-- | List equivalent of 'reifyNat'.  Given a list of integers, takes
+-- a function in an &quot;environment&quot; with a @'SymbolList' ss@ corresponding to
+-- the given list, where every @s@ in @ss@ has a 'KnownSymbol' instance.
+--
+-- Essentially a continuation-style version of 'SomeSymbols'.
+reifySymbols :: [String]
+             -&gt; (forall ss. KnownSymbols ss =&gt; SymbolList ss -&gt; r)
+             -&gt; r
+reifySymbols []     f = f &#216;SL
+reifySymbols (s:ss) f = reifySymbol s $ \t -&gt;
+                          reifySymbols ss $ \ts -&gt;
+                            f (t :&lt;$ ts)
+
+
+-- | Get evidence that the two 'KnownSymbols' lists are actually the &quot;same&quot;
+-- list of 'Symboles's (that they were instantiated with the same strings).
+--
+-- Essentialy runs 'sameSymbol' over the lists:
+--
+-- @
+-- case 'sameSymbols' ns ms of
+--   Just 'Refl' -&gt; -- in this branch, GHC recognizes that the
+--                  -- two ['Symbol']s are the same
+--   Nothing   -&gt; -- in this branch, they aren't
+-- @
+sameSymbols
+    :: SymbolList ns
+    -&gt; SymbolList ms
+    -&gt; Maybe (ns :~: ms)
+sameSymbols = \case
+    &#216;SL      -&gt; \case
+      &#216;SL      -&gt; Just Refl
+      _ :&lt;$ _  -&gt; Nothing
+    s :&lt;$ ss -&gt; \case
+      &#216;SL      -&gt; Nothing
+      t :&lt;$ ts -&gt; do
+        Refl &lt;- sameSymbol s t
+        Refl &lt;- sameSymbols ss ts
+        return Refl
+
+</span></pre></body></html>

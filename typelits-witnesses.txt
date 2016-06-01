@@ -23,6 +23,11 @@
 @package typelits-witnesses
 @version 0.2.2.0
 
+module GHC.TypeLits.Compare
+isLE :: (KnownNat m, KnownNat n) => Proxy m -> Proxy n -> Maybe ((m <=? n) :~: True)
+isNLE :: (KnownNat m, KnownNat n) => Proxy m -> Proxy n -> Maybe ((m <=? n) :~: False)
+(%<=) :: (KnownNat m, KnownNat n) => Proxy m -> Proxy n -> Either ((m <=? n) :~: False) ((m <=? n) :~: True)
+
 
 -- | Provides the <a>KnownNats</a> and <a>KnownSymbols</a> typeclasses in
 --   analogy to <a>KnownNat</a> and <a>KnownSymbol</a> from
@@ -60,7 +65,7 @@ natsList :: KnownNats ns => NatList ns
 --   It's a <a>NatList</a>, but you don't know what the list contains at
 --   compile-time.
 data SomeNats :: *
-SomeNats :: !(NatList ns) -> SomeNats
+[SomeNats] :: KnownNats ns => !(NatList ns) -> SomeNats
 
 -- | Singleton-esque type for "traversing" over type-level lists of
 --   <a>Nat</a>s. Essentially contains a (value-level) list of
@@ -70,8 +75,8 @@ SomeNats :: !(NatList ns) -> SomeNats
 --   
 --   Typically generated using <a>natsList</a>.
 data NatList :: [Nat] -> *
-ØNL :: NatList '[]
-(:<#) :: !(Proxy n) -> !(NatList ns) -> NatList (n : ns)
+[ØNL] :: NatList '[]
+[:<#] :: (KnownNat n, KnownNats ns) => !(Proxy n) -> !(NatList ns) -> NatList (n : ns)
 
 -- | List equivalent of <a>someNatVal</a>. Convert a list of integers into
 --   an unknown type-level list of naturals. Will return <a>Nothing</a> if
@@ -122,7 +127,7 @@ sameNats :: NatList ns -> NatList ms -> Maybe (ns :~: ms)
 --   dependently typed analogy for a fold.
 --   
 --   <i>Since 0.2.1.0</i>
-elimNatList :: p '[] -> (forall m ms. (KnownNat m, KnownNats ms) => Proxy m -> p ms -> p (m : ms)) -> NatList ns -> p ns
+elimNatList :: forall p ns. p '[] -> (forall m ms. (KnownNat m, KnownNats ms) => Proxy m -> p ms -> p (m : ms)) -> NatList ns -> p ns
 
 -- | Utility function for traversing over all of the <tt><a>Proxy</a>
 --   n</tt>s in a <a>NatList</a>, each with the corresponding
@@ -131,17 +136,17 @@ elimNatList :: p '[] -> (forall m ms. (KnownNat m, KnownNats ms) => Proxy m -> p
 --   
 --   Can be considered a form of a <tt>Traversal' <a>SomeNats</a>
 --   <a>SomeNat</a></tt>.
-traverseNatList :: Applicative f => (forall n. KnownNat n => Proxy n -> f SomeNat) -> NatList ns -> f SomeNats
+traverseNatList :: forall f ns. Applicative f => (forall n. KnownNat n => Proxy n -> f SomeNat) -> NatList ns -> f SomeNats
 
 -- | Like <a>traverseNatList</a>, but literally actually a <tt>Traversal'
 --   <a>SomeNats</a> <a>SomeNat</a></tt>, avoiding the Rank-2 types, so is
 --   usable with lens-library machinery.
-traverseNatList' :: Applicative f => (SomeNat -> f SomeNat) -> SomeNats -> f SomeNats
+traverseNatList' :: forall f. Applicative f => (SomeNat -> f SomeNat) -> SomeNats -> f SomeNats
 
 -- | Utility function for traversing over all of the <tt><a>Proxy</a>
 --   n</tt>s in a <a>NatList</a>, each with the corresponding
 --   <a>KnownNat</a> instance available. Results are ignored.
-traverseNatList_ :: Applicative f => (forall n. KnownNat n => Proxy n -> f a) -> NatList ns -> f ()
+traverseNatList_ :: forall f a ns. Applicative f => (forall n. KnownNat n => Proxy n -> f a) -> NatList ns -> f ()
 
 -- | Utility function for "mapping" over each of the <a>Nat</a>s in the
 --   <a>NatList</a>.
@@ -173,7 +178,7 @@ symbolsList :: KnownSymbols ss => SymbolList ss
 --   <a>SymbolList</a>, but you don't know what the list contains at
 --   compile-time.
 data SomeSymbols :: *
-SomeSymbols :: !(SymbolList ss) -> SomeSymbols
+[SomeSymbols] :: KnownSymbols ss => !(SymbolList ss) -> SomeSymbols
 
 -- | Singleton-esque type for "traversing" over type-level lists of
 --   <a>Symbol</a>s. Essentially contains a (value-level) list of
@@ -183,8 +188,8 @@ SomeSymbols :: !(SymbolList ss) -> SomeSymbols
 --   
 --   Typically generated using <a>symbolsList</a>.
 data SymbolList :: [Symbol] -> *
-ØSL :: SymbolList '[]
-(:<$) :: !(Proxy s) -> !(SymbolList ss) -> SymbolList (s : ss)
+[ØSL] :: SymbolList '[]
+[:<$] :: (KnownSymbol s, KnownSymbols ss) => !(Proxy s) -> !(SymbolList ss) -> SymbolList (s : ss)
 
 -- | List equivalent of <a>someNatVal</a>. Convert a list of integers into
 --   an unknown type-level list of naturals. Will return <a>Nothing</a> if
@@ -217,7 +222,7 @@ sameSymbols :: SymbolList ns -> SymbolList ms -> Maybe (ns :~: ms)
 --   dependently typed analogy for a fold.
 --   
 --   <i>Since 0.2.1.0</i>
-elimSymbolList :: p '[] -> (forall t ts. (KnownSymbol t, KnownSymbols ts) => Proxy t -> p ts -> p (t : ts)) -> SymbolList ss -> p ss
+elimSymbolList :: forall p ss. p '[] -> (forall t ts. (KnownSymbol t, KnownSymbols ts) => Proxy t -> p ts -> p (t : ts)) -> SymbolList ss -> p ss
 
 -- | Utility function for traversing over all of the <tt><a>Proxy</a>
 --   s</tt>s in a <a>SymbolList</a>, each with the corresponding
@@ -227,17 +232,17 @@ elimSymbolList :: p '[] -> (forall t ts. (KnownSymbol t, KnownSymbols ts) => Pro
 --   
 --   Can be considered a form of a <tt>Traversal' <a>SomeSymbols</a>
 --   <a>SomeSymbol</a></tt>.
-traverseSymbolList :: Applicative f => (forall s. KnownSymbol s => Proxy s -> f SomeSymbol) -> SymbolList ss -> f SomeSymbols
+traverseSymbolList :: forall f ss. Applicative f => (forall s. KnownSymbol s => Proxy s -> f SomeSymbol) -> SymbolList ss -> f SomeSymbols
 
 -- | Like <a>traverseSymbolList</a>, but literally actually a
 --   <tt>Traversal' <a>SomeSymbols</a> <a>SomeSymbol</a></tt>, avoiding the
 --   Rank-2 types, so is usable with lens-library machinery.
-traverseSymbolList' :: Applicative f => (SomeSymbol -> f SomeSymbol) -> SomeSymbols -> f SomeSymbols
+traverseSymbolList' :: forall f. Applicative f => (SomeSymbol -> f SomeSymbol) -> SomeSymbols -> f SomeSymbols
 
 -- | Utility function for traversing over all of the <tt><a>Proxy</a>
 --   s</tt>s in a <a>SymbolList</a>, each with the corresponding
 --   <a>KnownSymbol</a> instance available. Results are ignored.
-traverseSymbolList_ :: Applicative f => (forall s a. KnownSymbol s => Proxy s -> f a) -> SymbolList ss -> f ()
+traverseSymbolList_ :: forall f ss. Applicative f => (forall s a. KnownSymbol s => Proxy s -> f a) -> SymbolList ss -> f ()
 
 -- | Utility function for "mapping" over each of the <a>Symbol</a>s in the
 --   <a>SymbolList</a>.
@@ -363,14 +368,15 @@ natDict :: KnownNat n => Proxy n -> Dict (KnownNat n)
 
 -- | Get the <a>Integer</a> from the <a>KnownNat</a> instance witnessed by
 --   the <a>Dict</a>.
-dictNatVal :: Dict (KnownNat n) -> Integer
+dictNatVal :: forall n. Dict (KnownNat n) -> Integer
 
 -- | Given witnesses for <tt><a>KnownNat</a> n</tt> and <tt><a>KnownNat</a>
 --   m</tt>, generates a witness for <tt><a>KnownNat</a> (n + m)</tt>.
 --   
 --   Follows proper association and fixity for usage with other similar
 --   operators.
-(%+) :: Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat (n + m))
+(%+) :: forall n m. Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat (n + m))
+infixl 6 %+
 
 -- | Given witnesses for <tt><a>KnownNat</a> n</tt> and <tt><a>KnownNat</a>
 --   m</tt>, generates a witness for <tt><a>KnownNat</a> (n - m)</tt>.
@@ -380,33 +386,36 @@ dictNatVal :: Dict (KnownNat n) -> Integer
 --   
 --   Follows proper association and fixity for usage with other similar
 --   operators.
-(%-) :: Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat (n - m))
+(%-) :: forall n m. Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat (n - m))
+infixl 6 %-
 
 -- | Given witnesses for <tt><a>KnownNat</a> n</tt> and <tt><a>KnownNat</a>
 --   m</tt>, generates a witness for <tt><a>KnownNat</a> (n * m)</tt>.
 --   
 --   Follows proper association and fixity for usage with other similar
 --   operators.
-(%*) :: Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat (n * m))
+(%*) :: forall n m. Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat (n * m))
+infixl 7 %*
 
 -- | Given witnesses for <tt><a>KnownNat</a> n</tt> and <tt><a>KnownNat</a>
 --   m</tt>, generates a witness for <tt><a>KnownNat</a> (n ^ m)</tt>.
 --   
 --   Follows proper association and fixity for usage with other similar
 --   operators.
-(%^) :: Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat (n ^ m))
+(%^) :: forall n m. Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat (n ^ m))
+infixr 8 %^
 
 -- | An entailment for addition of <a>KnownNat</a> instances.
-entailAdd :: (KnownNat n, KnownNat m) :- KnownNat (n + m)
+entailAdd :: forall n m. (KnownNat n, KnownNat m) :- KnownNat (n + m)
 
 -- | An entailment for subtraction of <a>KnownNat</a> instances.
 --   
 --   Note that this is implemented in a way such that <i>negative</i>
 --   <a>KnownNat</a>s are produced without any errors.
-entailSub :: (KnownNat n, KnownNat m) :- KnownNat (n - m)
+entailSub :: forall n m. (KnownNat n, KnownNat m) :- KnownNat (n - m)
 
 -- | An entailment for multiplication of <a>KnownNat</a> instances.
-entailMul :: (KnownNat n, KnownNat m) :- KnownNat (n * m)
+entailMul :: forall n m. (KnownNat n, KnownNat m) :- KnownNat (n * m)
 
 -- | An entailment for exponentiation of <a>KnownNat</a> instances.
-entailExp :: (KnownNat n, KnownNat m) :- KnownNat (n ^ m)
+entailExp :: forall n m. (KnownNat n, KnownNat m) :- KnownNat (n ^ m)
