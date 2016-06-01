@@ -26,7 +26,7 @@
 module GHC.TypeLits.Compare
 isLE :: (KnownNat m, KnownNat n) => Proxy m -> Proxy n -> Maybe ((m <=? n) :~: True)
 isNLE :: (KnownNat m, KnownNat n) => Proxy m -> Proxy n -> Maybe ((m <=? n) :~: False)
-(%<=) :: (KnownNat m, KnownNat n) => Proxy m -> Proxy n -> Either ((m <=? n) :~: False) ((m <=? n) :~: True)
+(%<=?) :: (KnownNat m, KnownNat n) => Proxy m -> Proxy n -> Either ((m <=? n) :~: False) ((m <=? n) :~: True)
 
 
 -- | Provides the <a>KnownNats</a> and <a>KnownSymbols</a> typeclasses in
