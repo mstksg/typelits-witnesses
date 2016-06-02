@@ -22,13 +22,12 @@
 --   
 --   See README for more information.
 @package typelits-witnesses
-@version 0.2.2.0
+@version 0.2.3.0
 
 
 -- | This module provides the ability to refine given <a>KnownNat</a>
---   instances using <a>&lt;=</a> and <a>&lt;=?</a> from
---   <a>GHC.TypeLits</a>, and also the ability to prove inequalities and
---   upper/lower limits.
+--   instances using <a>GHC.TypeLits</a>'s comparison API, and also the
+--   ability to prove inequalities and upper/lower limits.
 --   
 --   If a library function requires <tt>1 <a>&lt;=</a> n</tt> constraint,
 --   but only <tt><a>KnownNat</a> n</tt> is available:
@@ -38,7 +37,7 @@
 --   
 --   bar :: KnownNat n =&gt; Proxy n -&gt; Int
 --   bar n = case (Proxy :: Proxy 1) <a>%&lt;=?</a> n of
---             <a>LE</a>  Refl -&gt; foo n
+--             <a>LE</a>  <a>Refl</a> -&gt; foo n
 --             <a>NLE</a> _    -&gt; 0
 --   </pre>
 --   
@@ -64,10 +63,43 @@
 --             <a>Just</a> Refl -&gt; foo n
 --             <a>Nothing</a>   -&gt; 0
 --   </pre>
+--   
+--   Similarly, if a library function requires something involving
+--   <a>CmpNat</a>, you can use <a>cmpNat</a> and the <a>SCmpNat</a> type:
+--   
+--   <pre>
+--   foo1 :: (KnownNat n, <a>CmpNat</a> 5 n ~ LT) =&gt; Proxy n -&gt; Int
+--   foo2 :: (KnownNat n, CmpNat 5 n ~ GT) =&gt; Proxy n -&gt; Int
+--   
+--   bar :: KnownNat n =&gt; Proxy n -&gt; Int
+--   bar n = case <a>cmpNat</a> (Proxy :: Proxy 5) n of
+--             <a>CLT</a> Refl -&gt; foo1 n
+--             <a>CEQ</a> Refl -&gt; 0
+--             <a>CGT</a> Refl -&gt; foo2 n
+--   </pre>
+--   
+--   You can use the <a>Refl</a> that <a>cmpNat</a> gives you with
+--   <a>flipCmpNat</a> and <a>cmpNatLE</a> to "flip" the inequality or turn
+--   it into something compatible with <a>&lt;=?</a> (useful for when you
+--   have to work with libraries that mix the two methods) or
+--   <a>cmpNatEq</a> and <a>eqCmpNat</a> to get to/from witnesses for
+--   equality of the two <a>Nat</a>s.
 module GHC.TypeLits.Compare
+data (:<=?) :: Nat -> Nat -> *
+[LE] :: ((m <=? n) :~: True) -> (m :<=? n)
+[NLE] :: ((m <=? n) :~: False) -> (m :<=? n)
 (%<=?) :: (KnownNat m, KnownNat n) => Proxy m -> Proxy n -> (m :<=? n)
 isLE :: (KnownNat m, KnownNat n) => Proxy m -> Proxy n -> Maybe ((m <=? n) :~: True)
 isNLE :: (KnownNat m, KnownNat n) => Proxy m -> Proxy n -> Maybe ((m <=? n) :~: False)
+data SCmpNat :: Nat -> Nat -> *
+[CLT] :: (CmpNat m n :~: LT) -> SCmpNat m n
+[CEQ] :: (CmpNat m n :~: EQ) -> SCmpNat m n
+[CGT] :: (CmpNat m n :~: GT) -> SCmpNat m n
+cmpNat :: (KnownNat m, KnownNat n) => Proxy m -> Proxy n -> SCmpNat m n
+flipCmpNat :: SCmpNat m n -> SCmpNat n m
+cmpNatEq :: (CmpNat m n :~: EQ) -> (m :~: n)
+eqCmpNat :: (m :~: n) -> (CmpNat m n :~: EQ)
+cmpNatLE :: SCmpNat m n -> (m :<=? n)
 
 
 -- | Provides the <a>KnownNats</a> and <a>KnownSymbols</a> typeclasses in
