@@ -88,10 +88,11 @@ in the module.  See module documentation for more detail.
 ----------------------
 
 Provides tools for refining upper and lower bounds on `KnownNat`s and proving
-inequalities with respect to the `GHC.TypeLits` `<=` and `<=?` API.
+inequalities involving `GHC.TypeLits`'s comparison API. (Both with `<=?` and
+`CmpNat`).
 
-If a library function requires `1 <= n` constraint, but only
-`KnownNat n` is available:
+If a library function requires `1 <= n` constraint, but only `KnownNat n` is
+available:
 
 ~~~haskell
 foo :: (KnownNat n, 1 <= n) => Proxy n -> Int
@@ -121,6 +122,26 @@ bar n = case isLE (Proxy :: Proxy 1) n of
           Just Refl -> foo n
           Nothing   -> 0
 ~~~
+
+Similarly, if a library function requires something involving `CmpNat`,
+you can use `cmpNat` and the `SCmpNat` type:
+
+~~~haskell
+foo1 :: (KnownNat n, CmpNat 5 n ~ LT) => Proxy n -> Int
+foo2 :: (KnownNat n, CmpNat 5 n ~ GT) => Proxy n -> Int
+
+bar :: KnownNat n => Proxy n -> Int
+bar n = case cmpNat (Proxy :: Proxy 5) n of
+          CLT Refl -> foo1 n
+          CEQ Refl -> 0
+          CGT Refl -> foo2 n
+~~~
+
+You can use the `Refl` that `cmpNat` gives you with `flipCmpNat` and
+`cmpNatLE` to "flip" the inequality or turn it into something compatible
+with `<=?` (useful for when you have to work with libraries that mix the
+two methods) or `cmpNatEq` and `eqCmpNat` to get to/from witnesses for
+equality of the two `Nat`s.
 
 `GHC.TypeLits.List`
 -------------------

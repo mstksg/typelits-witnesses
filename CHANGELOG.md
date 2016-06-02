@@ -4,7 +4,7 @@ Version 0.2.3.0
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.2.3.0>
 
 *   Added the `GHC.TypeLits.Compare` module for refining bounds and proving
-    inequalities on `KnownNat`s, and associated utility functions.
+    inequalities on `KnownNat`s and associated utility functions.
 
 Version 0.2.2.0
 ===============
