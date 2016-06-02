@@ -1,11 +1,10 @@
 typelits-witnesses
 ==================
 
-[![typelits-witnesses on Stackage LTS 2](http://stackage.org/package/typelits-witnesses/badge/lts-2)](http://stackage.org/lts-2/package/typelits-witnesses)
-[![typelits-witnesses on Stackage LTS 3](http://stackage.org/package/typelits-witnesses/badge/lts-3)](http://stackage.org/lts-3/package/typelits-witnesses)
-[![typelits-witnesses on Stackage LTS 4](http://stackage.org/package/typelits-witnesses/badge/lts-4)](http://stackage.org/lts-4/package/typelits-witnesses)
 [![typelits-witnesses on Stackage LTS](http://stackage.org/package/typelits-witnesses/badge/lts)](http://stackage.org/lts/package/typelits-witnesses)
 [![typelits-witnesses on Stackage Nightly](http://stackage.org/package/typelits-witnesses/badge/nightly)](http://stackage.org/nightly/package/typelits-witnesses)
+[![Build
+Status](https://travis-ci.org/mstksg/typelits-witnesses.svg?branch=master)](https://travis-ci.org/mstksg/typelits-witnesses)
 
 
 Provides witnesses for `KnownNat` and `KnownSymbol` instances for various
