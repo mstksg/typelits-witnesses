@@ -1,30 +1,77 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DataKinds #-}</span><span>
-</span><a name="line-2"></a><span class="hs-pragma">{-# LANGUAGE GADTs #-}</span><span>
-</span><a name="line-3"></a><span class="hs-pragma">{-# LANGUAGE KindSignatures #-}</span><span>
-</span><a name="line-4"></a><span class="hs-pragma">{-# LANGUAGE RankNTypes #-}</span><span>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DataKinds           #-}</span><span>
+</span><a name="line-2"></a><span class="hs-pragma">{-# LANGUAGE GADTs               #-}</span><span>
+</span><a name="line-3"></a><span class="hs-pragma">{-# LANGUAGE KindSignatures      #-}</span><span>
+</span><a name="line-4"></a><span class="hs-pragma">{-# LANGUAGE RankNTypes          #-}</span><span>
 </span><a name="line-5"></a><span class="hs-pragma">{-# LANGUAGE ScopedTypeVariables #-}</span><span>
-</span><a name="line-6"></a><span class="hs-pragma">{-# LANGUAGE TypeOperators #-}</span><span>
+</span><a name="line-6"></a><span class="hs-pragma">{-# LANGUAGE TypeOperators       #-}</span><span>
 </span><a name="line-7"></a><span>
-</span><a name="line-8"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">GHC</span><span class="hs-operator">.</span><span class="hs-identifier">TypeLits</span><span class="hs-operator">.</span><span class="hs-identifier">Compare</span><span>
-</span><a name="line-9"></a><span>  </span><span class="hs-special">(</span><span> </span><span class="hs-special">(</span><a href="GHC.TypeLits.Compare.html#%25%3C%3D%3F"><span class="hs-operator hs-var">%&lt;=?</span></a><span class="hs-special">)</span><span>
-</span><a name="line-10"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.Compare.html#isLE"><span class="hs-identifier hs-var">isLE</span></a><span>
-</span><a name="line-11"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.Compare.html#isNLE"><span class="hs-identifier hs-var">isNLE</span></a><span>
-</span><a name="line-12"></a><span>  </span><span class="hs-special">)</span><span>
-</span><a name="line-13"></a><span>  </span><span class="hs-keyword">where</span><span>
-</span><a name="line-14"></a><span>
-</span><a name="line-15"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Type</span><span class="hs-operator">.</span><span class="hs-identifier">Equality</span><span>
-</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Proxy</span><span>
-</span><a name="line-17"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">GHC</span><span class="hs-operator">.</span><span class="hs-identifier">TypeLits</span><span>
-</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Unsafe</span><span class="hs-operator">.</span><span class="hs-identifier">Coerce</span><span>
-</span><a name="line-19"></a><span>
-</span><a name="line-20"></a><span class="hs-identifier">isLE</span><span>
-</span><a name="line-21"></a><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">KnownNat</span><span> </span><a href="#local-1627406638"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">KnownNat</span><span> </span><a href="#local-1627406639"><span class="hs-identifier hs-type">n</span></a><span class="hs-special">)</span><span>
-</span><a name="line-22"></a><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-identifier hs-type">Proxy</span><span> </span><a href="#local-1627406638"><span class="hs-identifier hs-type">m</span></a><span>
-</span><a name="line-23"></a><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Proxy</span><span> </span><a href="#local-1627406639"><span class="hs-identifier hs-type">n</span></a><span>
-</span><a name="line-24"></a><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Maybe</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><a href="#local-1627406638"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-operator">&lt;=?</span><span> </span><a href="#local-1627406639"><span class="hs-identifier hs-type">n</span></a><span class="hs-special">)</span><span> </span><span class="hs-operator">:~:</span><span> </span><span class="hs-char">'True)
+</span><a name="line-8"></a><span class="hs-comment">-- |</span><span>
+</span><a name="line-9"></a><span class="hs-comment">-- Module      : GHC.TypeLits.Compare</span><span>
+</span><a name="line-10"></a><span class="hs-comment">-- Description : Tools for proving and refining inequalities and bounds on</span><span>
+</span><a name="line-11"></a><span class="hs-comment">--               GHC TypeLits types using '&lt;=' and '&lt;=?'</span><span>
+</span><a name="line-12"></a><span class="hs-comment">-- Copyright   : (c) Justin Le 2016</span><span>
+</span><a name="line-13"></a><span class="hs-comment">-- License     : MIT</span><span>
+</span><a name="line-14"></a><span class="hs-comment">-- Maintainer  : justin@jle.im</span><span>
+</span><a name="line-15"></a><span class="hs-comment">-- Stability   : unstable</span><span>
+</span><a name="line-16"></a><span class="hs-comment">-- Portability : non-portable</span><span>
+</span><a name="line-17"></a><span class="hs-comment">--</span><span>
+</span><a name="line-18"></a><span class="hs-comment">--</span><span>
+</span><a name="line-19"></a><span class="hs-comment">-- This module provides the ability to refine given 'KnownNat' instances</span><span>
+</span><a name="line-20"></a><span class="hs-comment">-- using '&lt;=' and '&lt;=?' from &quot;GHC.TypeLits&quot;, and also the ability to prove</span><span>
+</span><a name="line-21"></a><span class="hs-comment">-- inequalities and upper/lower limits.</span><span>
+</span><a name="line-22"></a><span class="hs-comment">--</span><span>
+</span><a name="line-23"></a><span class="hs-comment">-- If a library function requires @1 '&lt;=' n@ constraint, but only</span><span>
+</span><a name="line-24"></a><span class="hs-comment">-- @'KnownNat' n@ is available:</span><span>
+</span><a name="line-25"></a><span class="hs-comment">--</span><span>
+</span><a name="line-26"></a><span class="hs-comment">-- @</span><span>
+</span><a name="line-27"></a><span class="hs-comment">-- foo :: (KnownNat n, 1 '&lt;=' n) =&gt; 'Proxy' n -&gt; Int</span><span>
+</span><a name="line-28"></a><span class="hs-comment">--</span><span>
+</span><a name="line-29"></a><span class="hs-comment">-- bar :: KnownNat n =&gt; Proxy n -&gt; Int</span><span>
+</span><a name="line-30"></a><span class="hs-comment">-- bar n = case (Proxy :: Proxy 1) '%&lt;=?' n of</span><span>
+</span><a name="line-31"></a><span class="hs-comment">--           'LE'  Refl -&gt; foo n</span><span>
+</span><a name="line-32"></a><span class="hs-comment">--           'NLE' _    -&gt; 0</span><span>
+</span><a name="line-33"></a><span class="hs-comment">-- @</span><span>
+</span><a name="line-34"></a><span class="hs-comment">--</span><span>
+</span><a name="line-35"></a><span class="hs-comment">-- @foo@ requires that @1 &lt;= n@, but @bar@ has to handle all cases of @n@.</span><span>
+</span><a name="line-36"></a><span class="hs-comment">-- @%&lt;=?@ lets you compare the 'KnownNat's in two 'Proxy's and returns</span><span>
+</span><a name="line-37"></a><span class="hs-comment">-- a @:&lt;=?@, which has two constructors, 'LE' and 'NLE'.</span><span>
+</span><a name="line-38"></a><span class="hs-comment">--</span><span>
+</span><a name="line-39"></a><span class="hs-comment">-- If you pattern match on the result, in the 'LE' branch, the constraint</span><span>
+</span><a name="line-40"></a><span class="hs-comment">-- @1 &lt;= n@ will be satisfied according to GHC, so @bar@ can safely call</span><span>
+</span><a name="line-41"></a><span class="hs-comment">-- @foo@, and GHC will recognize that @1 &lt;= n@.</span><span>
+</span><a name="line-42"></a><span class="hs-comment">--</span><span>
+</span><a name="line-43"></a><span class="hs-comment">-- In the 'NLE' branch, the constraint that @1 &gt; n@ is satisfied, so any</span><span>
+</span><a name="line-44"></a><span class="hs-comment">-- functions that require that constraint would be callable.</span><span>
+</span><a name="line-45"></a><span class="hs-comment">--</span><span>
+</span><a name="line-46"></a><span class="hs-comment">-- For convenience, 'isLE' and 'isNLE' are also offered:</span><span>
+</span><a name="line-47"></a><span class="hs-comment">--</span><span>
+</span><a name="line-48"></a><span class="hs-comment">-- @</span><span>
+</span><a name="line-49"></a><span class="hs-comment">-- bar :: KnownNat n =&gt; Proxy n -&gt; Int</span><span>
+</span><a name="line-50"></a><span class="hs-comment">-- bar n = case 'isLE' (Proxy :: Proxy 1) n of</span><span>
+</span><a name="line-51"></a><span class="hs-comment">--           'Just' Refl -&gt; foo n</span><span>
+</span><a name="line-52"></a><span class="hs-comment">--           'Nothing'   -&gt; 0</span><span>
+</span><a name="line-53"></a><span class="hs-comment">-- @</span><span>
+</span><a name="line-54"></a><span>
+</span><a name="line-55"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">GHC</span><span class="hs-operator">.</span><span class="hs-identifier">TypeLits</span><span class="hs-operator">.</span><span class="hs-identifier">Compare</span><span>
+</span><a name="line-56"></a><span>  </span><span class="hs-special">(</span><span> </span><span class="hs-special">(</span><a href="GHC.TypeLits.Compare.html#%25%3C%3D%3F"><span class="hs-operator hs-var">%&lt;=?</span></a><span class="hs-special">)</span><span>
+</span><a name="line-57"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.Compare.html#isLE"><span class="hs-identifier hs-var">isLE</span></a><span>
+</span><a name="line-58"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="GHC.TypeLits.Compare.html#isNLE"><span class="hs-identifier hs-var">isNLE</span></a><span>
+</span><a name="line-59"></a><span>  </span><span class="hs-special">)</span><span>
+</span><a name="line-60"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-61"></a><span>
+</span><a name="line-62"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Type</span><span class="hs-operator">.</span><span class="hs-identifier">Equality</span><span>
+</span><a name="line-63"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Proxy</span><span>
+</span><a name="line-64"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">GHC</span><span class="hs-operator">.</span><span class="hs-identifier">TypeLits</span><span>
+</span><a name="line-65"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Unsafe</span><span class="hs-operator">.</span><span class="hs-identifier">Coerce</span><span>
+</span><a name="line-66"></a><span>
+</span><a name="line-67"></a><span class="hs-identifier">isLE</span><span>
+</span><a name="line-68"></a><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">KnownNat</span><span> </span><a href="#local-1627406517"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">KnownNat</span><span> </span><a href="#local-1627406518"><span class="hs-identifier hs-type">n</span></a><span class="hs-special">)</span><span>
+</span><a name="line-69"></a><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-identifier hs-type">Proxy</span><span> </span><a href="#local-1627406517"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-70"></a><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Proxy</span><span> </span><a href="#local-1627406518"><span class="hs-identifier hs-type">n</span></a><span>
+</span><a name="line-71"></a><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Maybe</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><a href="#local-1627406517"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-operator">&lt;=?</span><span> </span><a href="#local-1627406518"><span class="hs-identifier hs-type">n</span></a><span class="hs-special">)</span><span> </span><span class="hs-operator">:~:</span><span> </span><span class="hs-char">'True)
 isLE m n = case m %&lt;=? n of
-             Right Refl -&gt; Just Refl
-             Left _     -&gt; Nothing
+             LE  Refl -&gt; Just Refl
+             NLE _    -&gt; Nothing
 
 isNLE
     :: (KnownNat m, KnownNat n)
@@ -32,15 +79,19 @@ isNLE
     -&gt; Proxy n
     -&gt; Maybe ((m &lt;=? n) :~: 'False)
 isNLE m n = case m %&lt;=? n of
-              Left Refl -&gt; Just Refl
-              Right _   -&gt; Nothing
+              NLE Refl -&gt; Just Refl
+              LE  _    -&gt; Nothing
+
+data (:&lt;=?) :: Nat -&gt; Nat -&gt; * where
+  LE  :: ((m &lt;=? n) :~: 'True)  -&gt; (m :&lt;=? n)
+  NLE :: ((m &lt;=? n) :~: 'False) -&gt; (m :&lt;=? n)
 
 (%&lt;=?)
      :: (KnownNat m, KnownNat n)
      =&gt; Proxy m
      -&gt; Proxy n
-     -&gt; Either ((m &lt;=? n) :~: 'False) ((m &lt;=? n) :~: 'True)
-m %&lt;=? n | natVal m &lt;= natVal n = Right (unsafeCoerce Refl)
-         | otherwise            = Left (unsafeCoerce Refl)
+     -&gt; (m :&lt;=? n)
+m %&lt;=? n | natVal m &lt;= natVal n = LE  (unsafeCoerce Refl)
+         | otherwise            = NLE (unsafeCoerce Refl)
 
 </span></pre></body></html>

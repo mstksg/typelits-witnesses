@@ -11,7 +11,8 @@
 --   
 --   This is useful for situations where you have <tt><a>KnownNat</a>
 --   n</tt>, and you want to prove to GHC <tt><a>KnownNat</a> (n + 3)</tt>,
---   or <tt><a>KnownNat</a> (2*n + 4)</tt>.
+--   or <tt><a>KnownNat</a> (2*n + 4)</tt>, or when constraints on the
+--   lower or upper limits of <tt>n</tt> are needed.
 --   
 --   It's also useful for when you want to work with type level lists of
 --   <a>KnownNat</a> or <a>KnownSymbol</a> instances and singletons for
@@ -23,8 +24,48 @@
 @package typelits-witnesses
 @version 0.2.2.0
 
+
+-- | This module provides the ability to refine given <a>KnownNat</a>
+--   instances using <a>&lt;=</a> and <a>&lt;=?</a> from
+--   <a>GHC.TypeLits</a>, and also the ability to prove inequalities and
+--   upper/lower limits.
+--   
+--   If a library function requires <tt>1 <a>&lt;=</a> n</tt> constraint,
+--   but only <tt><a>KnownNat</a> n</tt> is available:
+--   
+--   <pre>
+--   foo :: (KnownNat n, 1 <a>&lt;=</a> n) =&gt; <a>Proxy</a> n -&gt; Int
+--   
+--   bar :: KnownNat n =&gt; Proxy n -&gt; Int
+--   bar n = case (Proxy :: Proxy 1) <a>%&lt;=?</a> n of
+--             <a>LE</a>  Refl -&gt; foo n
+--             <a>NLE</a> _    -&gt; 0
+--   </pre>
+--   
+--   <tt>foo</tt> requires that <tt>1 &lt;= n</tt>, but <tt>bar</tt> has to
+--   handle all cases of <tt>n</tt>. <tt>%&lt;=?</tt> lets you compare the
+--   <a>KnownNat</a>s in two <a>Proxy</a>s and returns a <tt>:&lt;=?</tt>,
+--   which has two constructors, <a>LE</a> and <a>NLE</a>.
+--   
+--   If you pattern match on the result, in the <a>LE</a> branch, the
+--   constraint <tt>1 &lt;= n</tt> will be satisfied according to GHC, so
+--   <tt>bar</tt> can safely call <tt>foo</tt>, and GHC will recognize that
+--   <tt>1 &lt;= n</tt>.
+--   
+--   In the <a>NLE</a> branch, the constraint that <tt>1 &gt; n</tt> is
+--   satisfied, so any functions that require that constraint would be
+--   callable.
+--   
+--   For convenience, <a>isLE</a> and <a>isNLE</a> are also offered:
+--   
+--   <pre>
+--   bar :: KnownNat n =&gt; Proxy n -&gt; Int
+--   bar n = case <a>isLE</a> (Proxy :: Proxy 1) n of
+--             <a>Just</a> Refl -&gt; foo n
+--             <a>Nothing</a>   -&gt; 0
+--   </pre>
 module GHC.TypeLits.Compare
-(%<=?) :: (KnownNat m, KnownNat n) => Proxy m -> Proxy n -> Either ((m <=? n) :~: False) ((m <=? n) :~: True)
+(%<=?) :: (KnownNat m, KnownNat n) => Proxy m -> Proxy n -> (m :<=? n)
 isLE :: (KnownNat m, KnownNat n) => Proxy m -> Proxy n -> Maybe ((m <=? n) :~: True)
 isNLE :: (KnownNat m, KnownNat n) => Proxy m -> Proxy n -> Maybe ((m <=? n) :~: False)
 
