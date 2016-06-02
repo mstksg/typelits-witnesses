@@ -55,6 +55,7 @@ library
                      , base-compat
                      , constraints
                      , reflection >= 2
+                     , transformers
   hs-source-dirs:      src
   ghc-options:         -Wall
   default-language:    Haskell2010
