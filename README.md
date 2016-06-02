@@ -21,6 +21,16 @@ It's also useful for when you want to work with type level lists of
 able to apply analogies of `natVal`/`symbolVal` to lists with analogies for
 `SomeNat` and `SomeSymbol`.
 
+Note that most of the functionality in this library can be reproduced in a more
+generic way using the great [singletons][] library.  The versions here are
+provided as a "plumbing included" alternative that makes some commonly found
+design patterns involving GHC's TypeLits functionality a little smoother,
+especially when working with external libraries or GHC TypeLit's `Nat`
+comparison API.
+
+[singletons]: https://hackage.haskell.org/package/singletons
+
+
 `GHC.TypeLits.Witnesses`
 ------------------------
 
@@ -88,7 +98,7 @@ in the module.  See module documentation for more detail.
 ----------------------
 
 Provides tools for refining upper and lower bounds on `KnownNat`s and proving
-inequalities involving `GHC.TypeLits`'s comparison API. (Both with `<=?` and
+inequalities involving *GHC.TypeLits*'s comparison API. (Both with `<=?` and
 `CmpNat`).
 
 If a library function requires `1 <= n` constraint, but only `KnownNat n` is

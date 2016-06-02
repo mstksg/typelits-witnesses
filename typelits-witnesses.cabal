@@ -19,6 +19,15 @@ description:         Provides witnesses for 'KnownNat' and 'KnownSymbol'
                      analogies of 'natVal' and 'symbolVal' to lists with
                      analogies for 'SomeNat' and 'SomeSymbol'.
                      .
+                     Note that most of the functionality in this library can
+                     be reproduced in a more generic way using the great
+                     <https://hackage.haskell.org/package/singletons singletons>
+                     library.  The versions here are provided as a "plumbing
+                     included" alternative that makes some commonly found
+                     design patterns involving GHC's TypeLits functionality a
+                     little smoother, especially when working with external
+                     libraries or GHC TypeLit's Nat comparison API.
+                     .
                      See README for more information.
 homepage:            https://github.com/mstksg/typelits-witnesses
 license:             MIT
