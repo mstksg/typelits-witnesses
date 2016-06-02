@@ -84,6 +84,44 @@ Note that `(%-)` is implemented in a way that allows for the result to be a
 There are more advanced operations dealing with low-level machinery, as well,
 in the module.  See module documentation for more detail.
 
+`GHC.TypeLits.Compare`
+----------------------
+
+Provides tools for refining upper and lower bounds on `KnownNat`s and proving
+inequalities with respect to the `GHC.TypeLits` `<=` and `<=?` API.
+
+If a library function requires `1 <= n` constraint, but only
+`KnownNat n` is available:
+
+~~~haskell
+foo :: (KnownNat n, 1 <= n) => Proxy n -> Int
+
+bar :: KnownNat n => Proxy n -> Int
+bar n = case (Proxy :: Proxy 1) %<=? n of
+          LE  Refl -> foo n
+          NLE _    -> 0
+~~~
+
+`foo` requires that `1 <= n`, but `bar` has to handle all cases of `n`.  `%<=?`
+lets you compare the `KnownNat`s in two `Proxy`s and returns a `:<=?`, which
+has two constructors, `LE` and `NLE`.
+
+If you pattern match on the result, in the `LE` branch, the constraint
+`1 <= n` will be satisfied according to GHC, so `bar` can safely call
+`foo`, and GHC will recognize that `1 <= n`.
+
+In the `NLE` branch, the constraint that `1 > n` is satisfied, so any
+functions that require that constraint would be callable.
+
+For convenience, `isLE` and `isNLE` are also offered:
+
+~~~haskell
+bar :: KnownNat n => Proxy n -> Int
+bar n = case isLE (Proxy :: Proxy 1) n of
+          Just Refl -> foo n
+          Nothing   -> 0
+~~~
+
 `GHC.TypeLits.List`
 -------------------
 

@@ -1,5 +1,5 @@
 name:                typelits-witnesses
-version:             0.2.2.0
+version:             0.2.3.0
 synopsis:            Existential witnesses, singletons, and classes for operations on GHC TypeLits
 description:         Provides witnesses for 'KnownNat' and 'KnownSymbol'
                      instances for various operations on GHC TypeLits - in
@@ -9,7 +9,9 @@ description:         Provides witnesses for 'KnownNat' and 'KnownSymbol'
                      .
                      This is useful for situations where you have
                      @'KnownNat' n@, and you want to prove to GHC
-                     @'KnownNat' (n + 3)@, or @'KnownNat' (2*n + 4)@.
+                     @'KnownNat' (n + 3)@, or @'KnownNat' (2*n + 4)@, or when
+                     constraints on the lower or upper limits of @n@ are
+                     needed.
                      .
                      It's also useful for when you want to work with type
                      level lists of 'KnownNat' or 'KnownSymbol' instances and
