@@ -33,7 +33,8 @@
 --
 -- See typeclass documentations and README for more information.
 
-module GHC.TypeLits.List (
+module GHC.TypeLits.List
+  {-# DEPRECATED "Use singletons package instead" #-} (
   -- * 'KnownNats'
     KnownNats(..)
   , SomeNats(..)
@@ -75,6 +76,7 @@ import Data.Reflection
 import Data.Type.Equality
 import GHC.TypeLits
 
+
 -- | @'KnownNats' ns@ is intended to represent that every 'Nat' in the
 -- type-level list 'ns' is itself a 'KnownNat' (meaning, you can use
 -- 'natVal' to get its corresponding 'Integer').
@@ -92,6 +94,9 @@ import GHC.TypeLits
 class KnownNats (ns :: [Nat]) where
     natsVal  :: p ns -> [Integer]
     natsList :: NatList ns
+{-# DEPRECATED KnownNats "Use SingI from the singletons package instead" #-}
+{-# DEPRECATED natsVal "Use fromSing from the singletons package instead" #-}
+{-# DEPRECATED natsList "Use sing from the singletons package instead" #-}
 
 instance KnownNats '[] where
     natsVal  _ = []
@@ -106,6 +111,7 @@ instance (KnownNat n, KnownNats ns) => KnownNats (n ': ns) where
 -- compile-time.
 data SomeNats :: * where
     SomeNats :: KnownNats ns => !(NatList ns) -> SomeNats
+{-# DEPRECATED SomeNats "Use SomeSing from the singletons package instead" #-}
 
 -- | Singleton-esque type for "traversing" over type-level lists of 'Nat's.
 -- Essentially contains a (value-level) list of @'Proxy' n@s, but each 'n'
@@ -117,6 +123,7 @@ data NatList :: [Nat] -> * where
     ØNL   :: NatList '[]
     (:<#) :: (KnownNat n, KnownNats ns)
           => !(Proxy n) -> !(NatList ns) -> NatList (n ': ns)
+{-# DEPRECATED NatList "Use Sing from the singletons package instead" #-}
 
 infixr 5 :<#
 deriving instance Show (NatList ns)
@@ -211,6 +218,7 @@ someNatsVal (n:ns) = do
     SomeNat  m  <- someNatVal n
     SomeNats ms <- someNatsVal ns
     return $ SomeNats (m :<# ms)
+{-# DEPRECATED someNatsVal "Use toSing from the singletons package instead" #-}
 
 -- | List equivalent of 'reifyNat'.  Given a list of integers, takes
 -- a function in an "environment" with a @'NatList' ns@ corresponding to
@@ -228,6 +236,7 @@ reifyNats []     f = f ØNL
 reifyNats (n:ns) f = reifyNat n $ \m ->
                        reifyNats ns $ \ms ->
                          f (m :<# ms)
+{-# DEPRECATED reifyNats "Use withSomeSing from the singletons package instead" #-}
 
 -- | "Safe" version of 'reifyNats', which will only run the continuation if
 -- every 'Integer' in the list is non-negative.  If not, then returns
@@ -241,13 +250,14 @@ reifyNats' ns d f =
     case someNatsVal ns of
       Just (SomeNats ms) -> f ms
       Nothing            -> d
-
+{-# DEPRECATED reifyNats' "Use withSomeSing from the singletons package instead" #-}
 
 -- | Like 'someNatsVal', but will also go ahead and produce 'KnownNat's
 -- whose integer values are negative.  It won't ever error on producing
 -- them, but extra care must be taken when using the produced 'SomeNat's.
 someNatsValPos :: [Integer] -> SomeNats
 someNatsValPos ns = reifyNats ns SomeNats
+{-# DEPRECATED someNatsValPos "Use toSing from the singletons package instead" #-}
 
 -- | Get evidence that the two 'KnownNats' lists are actually the "same"
 -- list of 'Nat's (that they were instantiated with the same numbers).
@@ -274,7 +284,7 @@ sameNats = \case
         Refl <- sameNat n m
         Refl <- sameNats ns ms
         return Refl
-
+{-# DEPRECATED sameNats "Use (%~) from the singletons package instead" #-}
 
 
 -- | @'KnownSymbols' ss@ is intended to represent that every 'Symbol' in the
@@ -291,6 +301,9 @@ sameNats = \case
 class KnownSymbols (ss :: [Symbol]) where
     symbolsVal  :: p ss -> [String]
     symbolsList :: SymbolList ss
+{-# DEPRECATED KnownSymbols "Use SingI from the singletons package instead" #-}
+{-# DEPRECATED symbolsVal "Use fromSing from the singletons package instead" #-}
+{-# DEPRECATED symbolsList "Use sing from the singletons package instead" #-}
 
 instance KnownSymbols '[] where
     symbolsVal  _ = []
@@ -304,6 +317,7 @@ instance (KnownSymbol s, KnownSymbols ss) => KnownSymbols (s ': ss) where
 -- but you don't know what the list contains at compile-time.
 data SomeSymbols :: * where
     SomeSymbols :: KnownSymbols ss => !(SymbolList ss) -> SomeSymbols
+{-# DEPRECATED SomeSymbols "Use SomeSing from the singletons package instead" #-}
 
 -- | Singleton-esque type for "traversing" over type-level lists of
 -- 'Symbol's. Essentially contains a (value-level) list of @'Proxy' n@s,
@@ -315,6 +329,7 @@ data SymbolList :: [Symbol] -> * where
     ØSL   :: SymbolList '[]
     (:<$) :: (KnownSymbol s, KnownSymbols ss)
           => !(Proxy s) -> !(SymbolList ss) -> SymbolList (s ': ss)
+{-# DEPRECATED SymbolList "Use Sing from the singletons package instead" #-}
 
 infixr 5 :<$
 deriving instance Show (SymbolList ns)
@@ -411,6 +426,7 @@ someSymbolsVal (s:ss) =
         case someSymbolsVal ss of
           SomeSymbols ts ->
             SomeSymbols (t :<$ ts)
+{-# DEPRECATED someSymbolsVal "Use toSing from the singletons package instead" #-}
 
 -- | List equivalent of 'reifyNat'.  Given a list of integers, takes
 -- a function in an "environment" with a @'SymbolList' ss@ corresponding to
@@ -424,6 +440,7 @@ reifySymbols []     f = f ØSL
 reifySymbols (s:ss) f = reifySymbol s $ \t ->
                           reifySymbols ss $ \ts ->
                             f (t :<$ ts)
+{-# DEPRECATED reifySymbols "Use withSomeSing from the singletons package instead" #-}
 
 
 -- | Get evidence that the two 'KnownSymbols' lists are actually the "same"
@@ -451,4 +468,5 @@ sameSymbols = \case
         Refl <- sameSymbol s t
         Refl <- sameSymbols ss ts
         return Refl
+{-# DEPRECATED sameSymbols "Use (%~) from the singletons package instead" #-}
 

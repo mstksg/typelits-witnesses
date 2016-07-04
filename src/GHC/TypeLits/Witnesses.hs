@@ -69,7 +69,8 @@
 -- potentially break.
 
 
-module GHC.TypeLits.Witnesses (
+module GHC.TypeLits.Witnesses
+  {-# DEPRECATED "Use singletons package instead" #-} (
   -- * High level wrapper
     withNatOp
   -- * Direct witnesses
