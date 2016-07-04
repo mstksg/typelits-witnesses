@@ -13,7 +13,14 @@ needed.</p><p>It's also useful for when you want to work with type
 level lists of <code>KnownNat</code> or <code>KnownSymbol</code> instances and
 singletons for traversing them, and be able to apply
 analogies of <code>natVal</code> and <code>symbolVal</code> to lists with
-analogies for <code>SomeNat</code> and <code>SomeSymbol</code>.</p><p>See README for more information.</p></div></div><div id="module-list"><p class="caption">Modules</p><ul><li><span id="control.n.1" class="module collapser" onclick="toggleSection('n.1')">GHC</span><ul id="section.n.1" class="show"><li><span id="control.n.1.1" class="module collapser" onclick="toggleSection('n.1.1')">TypeLits</span><ul id="section.n.1.1" class="show"><li><span class="module"><a href="GHC-TypeLits-Compare.html">GHC.TypeLits.Compare</a></span> Tools and singletons for proving and refining inequalities
+analogies for <code>SomeNat</code> and <code>SomeSymbol</code>.</p><p>Note that most of the functionality in this library can
+be reproduced in a more generic way using the great
+<a href="https://hackage.haskell.org/package/singletons">singletons</a>
+library.  The versions here are provided as a &quot;plumbing
+included&quot; alternative that makes some commonly found
+design patterns involving GHC's TypeLits functionality a
+little smoother, especially when working with external
+libraries or GHC TypeLit's Nat comparison API.</p><p>See README for more information.</p></div></div><div id="module-list"><p class="caption">Modules</p><ul><li><span id="control.n.1" class="module collapser" onclick="toggleSection('n.1')">GHC</span><ul id="section.n.1" class="show"><li><span id="control.n.1.1" class="module collapser" onclick="toggleSection('n.1.1')">TypeLits</span><ul id="section.n.1.1" class="show"><li><span class="module"><a href="GHC-TypeLits-Compare.html">GHC.TypeLits.Compare</a></span> Tools and singletons for proving and refining inequalities
                and bounds on GHC TypeLits types using <code>&lt;=</code> and <code>&lt;=?</code></li><li><span class="module"><a href="GHC-TypeLits-List.html">GHC.TypeLits.List</a></span> Typeclasses, singletons, and reifiers for type-level lists
                of <code>Nat</code>s and <code>Symbol</code>s.</li><li><span class="module"><a href="GHC-TypeLits-Witnesses.html">GHC.TypeLits.Witnesses</a></span> Instance witnesses for various arithmetic operations on
                GHC TypeLits.</li></ul></li></ul></li></ul></div></div><div id="footer"><p>Produced by <a href="http://www.haskell.org/haddock/">Haddock</a> version 2.17.2</p></div></body></html>

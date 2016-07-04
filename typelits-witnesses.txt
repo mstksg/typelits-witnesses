@@ -20,6 +20,13 @@
 --   <a>symbolVal</a> to lists with analogies for <a>SomeNat</a> and
 --   <a>SomeSymbol</a>.
 --   
+--   Note that most of the functionality in this library can be reproduced
+--   in a more generic way using the great <a>singletons</a> library. The
+--   versions here are provided as a "plumbing included" alternative that
+--   makes some commonly found design patterns involving GHC's TypeLits
+--   functionality a little smoother, especially when working with external
+--   libraries or GHC TypeLit's Nat comparison API.
+--   
 --   See README for more information.
 @package typelits-witnesses
 @version 0.2.3.0
@@ -111,6 +118,8 @@ cmpNatLE :: SCmpNat m n -> (m :<=? n)
 --   <a>SomeSymbol</a>.
 --   
 --   See typeclass documentations and README for more information.
+
+-- | <i>Deprecated: Use singletons package instead</i>
 module GHC.TypeLits.List
 
 -- | <tt><a>KnownNats</a> ns</tt> is intended to represent that every
@@ -385,6 +394,8 @@ instance (GHC.TypeLits.KnownSymbol s, GHC.TypeLits.List.KnownSymbols ss) => GHC.
 --   any errors. The production of witnesses and entailments will hold, but
 --   be aware that any functions that rely on <a>KnownNat</a> instances to
 --   be non-negative can potentially break.
+
+-- | <i>Deprecated: Use singletons package instead</i>
 module GHC.TypeLits.Witnesses
 
 -- | A high-level the interface of this module. Give it one of the
