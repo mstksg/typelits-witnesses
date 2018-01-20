@@ -1,3 +1,14 @@
+Version 0.3.0.0
+===============
+
+<https://github.com/mstksg/typelits-witnesses/releases/tag/v0.3.0.0>
+
+*   Added extra witnesses inside the constructors of `(:<=?)`.
+*   Soft deprecation of *GHC.TypeLits.Witnesses*, in case people want to use
+    the functionality of *singletons* without the full library.
+*   Formal deprecation of *GHC.TypeLits.List*, with migration information,
+    because it's just so much more unweidly than using *singletons*.
+
 Version 0.2.3.0
 ===============
 

@@ -92,7 +92,9 @@ equality of the two `Nat`s.
 GHC.TypeLits.Witnesses
 ----------------------
 
-**DEPRECATED: Use *[singletons][]* library instead**
+**SOFT DEPRECATED**: Use *[singletons][]* library instead!  However, this
+module is still here in case people want the functionality of *singletons*
+without requiring the entire library.
 
 Provides witnesses for instances arising from the arithmetic operations
 defined in `GHC.TypeLits`.
@@ -178,7 +180,10 @@ getDoubled s = withKnownNat (s %:* SNat @2) $
 GHC.TypeLits.List
 -------------------
 
-**DEPRECATED: Use *[singletons][]* library instead**
+**HARD DEPRECATED: Use *[singletons][]* library instead!  This module is
+extremely unweildy, and using *singletons* is much, much smoother on many
+levels, and integrates everything together in a nice way.  This module will
+likely be removed in a future version.
 
 Provides analogies of `KnownNat`, `SomeNat`, `natVal`, etc., to type-level
 lists of `KnownNat` instances, and also singletons for iterating over
