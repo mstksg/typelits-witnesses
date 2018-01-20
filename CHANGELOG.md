@@ -4,6 +4,8 @@ Version 0.3.0.0
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.3.0.0>
 
 *   Added extra witnesses inside the constructors of `(:<=?)`.
+*   Allowed functions to polymorphically expect `p n` instead of `Proxy n`
+    whenever possible.
 *   Soft deprecation of *GHC.TypeLits.Witnesses*, in case people want to use
     the functionality of *singletons* without the full library.
 *   Formal deprecation of *GHC.TypeLits.List*, with migration information,
