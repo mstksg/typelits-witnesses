@@ -15,6 +15,7 @@
 -- Stability   : unstable
 -- Portability : non-portable
 --
+-- __Deprecated: Use the /singletons/ package instead__
 --
 -- This module provides witnesses for instances that result from the
 -- various arithmetic operations on GHC TypeLits 'Nat' types.  In general,
@@ -67,10 +68,13 @@
 -- production of witnesses and entailments will hold, but be aware that any
 -- functions that rely on 'KnownNat' instances to be non-negative can
 -- potentially break.
+--
+--
 
 
-module GHC.TypeLits.Witnesses
-  {-# DEPRECATED "Use singletons package instead" #-} (
+module GHC.TypeLits.Witnesses (
+  -- * Singletons
+  -- $singletons
   -- * High level wrapper
     withNatOp
   -- * Direct witnesses
@@ -94,12 +98,61 @@ import Data.Proxy
 import Data.Reflection
 import Unsafe.Coerce
 
+-- $singletons
+--
+-- All of the functionality in this module can be subsumed by the
+-- /singletons/ package, by utilizing:
+--
+--   * "Data.Singletons"
+--   * "Data.Singletons.TypeLits"
+--   * "Data.Singletons.Prelude.Num"
+--
+-- This module is left in this package as an alternative for those who
+-- might, for some reason, not want to add a /singletons/ dependency to
+-- their project.  However, if you do much at the type level, using the
+-- /singletons/ library is much preferred, as it provides a unifed
+-- interface for all of the functionality here, generalized to other kinds
+-- besides 'Nat'.
+--
+-- For all functions in this module, a /singletons/ equivalent is included
+-- for help migrating.
+--
+-- In general:
+--
+--
+--   * The /singletons/ type @'Sing' n@ (or its equivalent, @'SNat' n@)
+--     subsumes both @'Proxy' n@ and @'Dict' ('KnownNat' n)@.  You can
+--     replace both @'Proxy' n@ and @'Dict' ('KnownNat' n)@ with @'SNat' n@
+--     to move to singletons style.
+--
+--   * 'dictNatVal' and 'natVal' are both just 'fromSing'.
+--
+--   * Replace '%+', '%-', and '%*' with their /singletons/
+--     equivalents, '%:+', '%:-', and '%:*' from
+--     "Data.Singletons.Prelude.Num".  Note that the current version of
+--     /singletons/ does not have an equivalent for '%^'.
+--
+--   * Use 'withKnownNat' from /singletons/ (or just pattern match on
+--     'SNat') to get a 'KnownNat' instance from a @'SNat' n@, the same way
+--     you'd get one from a 'Dict'.
+--
+--   * The high-level combinator 'withNatOp' can simply be replaced with
+--     applying your singleton functions ('%+' etc.) to 'SNat' values, and
+--     pattern matching on the result, or using 'withKnownNat' on the result.
+--
+
 -- | Create a 'Dict' witness for @'KnownNat' n@.
+--
+-- Not necessary with /singletons/, as @'SNat' n@ stands in for both
+-- @'Proxy' n@ and @'Dict' ('KnownNat' n)@.
 natDict :: KnownNat n => Proxy n -> Dict (KnownNat n)
 natDict _ = Dict
 
 -- | Get the 'Integer' from the 'KnownNat' instance witnessed by the
 -- 'Dict'.
+--
+-- With /singletons/, this is 'fromSing', which takes an @'SNat' n@ and
+-- returns an 'Integer'.
 dictNatVal :: forall n. Dict (KnownNat n) -> Integer
 dictNatVal Dict = natVal (Proxy :: Proxy n)
 
@@ -113,6 +166,8 @@ infixr 8 %^
 --
 -- Follows proper association and fixity for usage with other similar
 -- operators.
+--
+-- With /singletons/, this is '%:+' from "Data.Singletons.Prelude.Num".
 (%+) :: forall n m. Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat (n + m))
 Dict %+ Dict = mapDict entailAdd (Dict :: Dict (KnownNat n, KnownNat m))
 
@@ -124,6 +179,8 @@ Dict %+ Dict = mapDict entailAdd (Dict :: Dict (KnownNat n, KnownNat m))
 --
 -- Follows proper association and fixity for usage with other similar
 -- operators.
+--
+-- With /singletons/, this is '%:-' from "Data.Singletons.Prelude.Num".
 (%-) :: forall n m. Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat (n - m))
 Dict %- Dict = mapDict entailSub (Dict :: Dict (KnownNat n, KnownNat m))
 
@@ -132,6 +189,8 @@ Dict %- Dict = mapDict entailSub (Dict :: Dict (KnownNat n, KnownNat m))
 --
 -- Follows proper association and fixity for usage with other similar
 -- operators.
+--
+-- With /singletons/, this is '%:*' from "Data.Singletons.Prelude.Num".
 (%*) :: forall n m. Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat (n * m))
 Dict %* Dict = mapDict entailMul (Dict :: Dict (KnownNat n, KnownNat m))
 
@@ -189,6 +248,23 @@ Dict %^ Dict = mapDict entailExp (Dict :: Dict (KnownNat n, KnownNat m))
 -- (Note that associativity and fixity for the witness-generating operators
 -- are set to match that of normal addition and multiplication, etc.)
 --
+-- With /singletons/, @'withNatOp' f x y@ is @'withKnownNat' (f x y)@.
+--
+-- So, instead of
+--
+-- @
+-- 'withNatOp' ('%+') ('Proxy' :: 'Proxy' n) ('Proxy' :: 'Proxy' 1) $
+--     'natVal' ('Proxy' :: 'Proxy' (n + 1))
+-- @
+--
+-- You can just use
+--
+-- @
+-- 'withKnownNat' ('SNat' @n) ('SNat @1) $
+--     'natVal' ('Proxy' :: 'Proxy' (n + 1))
+-- @
+--
+-- 'natVal' can of course be replaced with 'fromSing'.
 --
 withNatOp
     :: (KnownNat n, KnownNat m)
