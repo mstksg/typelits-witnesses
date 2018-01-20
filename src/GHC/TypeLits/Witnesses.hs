@@ -145,7 +145,7 @@ import Unsafe.Coerce
 --
 -- Not necessary with /singletons/, as @'SNat' n@ stands in for both
 -- @'Proxy' n@ and @'Dict' ('KnownNat' n)@.
-natDict :: KnownNat n => Proxy n -> Dict (KnownNat n)
+natDict :: KnownNat n => p n -> Dict (KnownNat n)
 natDict _ = Dict
 
 -- | Get the 'Integer' from the 'KnownNat' instance witnessed by the
@@ -269,8 +269,8 @@ Dict %^ Dict = mapDict entailExp (Dict :: Dict (KnownNat n, KnownNat m))
 withNatOp
     :: (KnownNat n, KnownNat m)
     => (Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat q))
-    -> Proxy n
-    -> Proxy m
+    -> p n
+    -> p m
     -> (KnownNat q => r)
     -> r
 withNatOp op x y r = case natDict x `op` natDict y of

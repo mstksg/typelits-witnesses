@@ -94,14 +94,13 @@ module GHC.TypeLits.Compare
   where
 
 import Data.Type.Equality
-import Data.Proxy
 import GHC.TypeLits
 import Unsafe.Coerce
 
 isLE
     :: (KnownNat m, KnownNat n)
-    => Proxy m
-    -> Proxy n
+    => p m
+    -> p n
     -> Maybe ((m <=? n) :~: 'True)
 isLE m n = case m %<=? n of
              LE  Refl -> Just Refl
@@ -109,8 +108,8 @@ isLE m n = case m %<=? n of
 
 isNLE
     :: (KnownNat m, KnownNat n)
-    => Proxy m
-    -> Proxy n
+    => p m
+    -> p n
     -> Maybe ((m <=? n) :~: 'False)
 isNLE m n = case m %<=? n of
               NLE Refl Refl -> Just Refl
@@ -122,8 +121,8 @@ data (:<=?) :: Nat -> Nat -> * where
 
 (%<=?)
      :: (KnownNat m, KnownNat n)
-     => Proxy m
-     -> Proxy n
+     => p m
+     -> p n
      -> (m :<=? n)
 m %<=? n | natVal m <= natVal n = LE  (unsafeCoerce Refl)
          | otherwise            = NLE (unsafeCoerce Refl) (unsafeCoerce Refl)
@@ -135,8 +134,8 @@ data SCmpNat :: Nat -> Nat -> * where
 
 cmpNat
     :: (KnownNat m, KnownNat n)
-    => Proxy m
-    -> Proxy n
+    => p m
+    -> p n
     -> SCmpNat m n
 cmpNat m n = case compare (natVal m) (natVal n) of
                LT -> CLT (unsafeCoerce Refl)
