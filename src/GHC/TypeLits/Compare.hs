@@ -87,6 +87,7 @@ module GHC.TypeLits.Compare
   , flipCmpNat
   , cmpNatEq
   , eqCmpNat
+  , reflCmpNat
     -- ** Interfacing with '<=?'
   , cmpNatLE
   )
@@ -104,7 +105,7 @@ isLE
     -> Maybe ((m <=? n) :~: 'True)
 isLE m n = case m %<=? n of
              LE  Refl -> Just Refl
-             NLE _    -> Nothing
+             NLE _ _  -> Nothing
 
 isNLE
     :: (KnownNat m, KnownNat n)
@@ -112,12 +113,12 @@ isNLE
     -> Proxy n
     -> Maybe ((m <=? n) :~: 'False)
 isNLE m n = case m %<=? n of
-              NLE Refl -> Just Refl
-              LE  _    -> Nothing
+              NLE Refl Refl -> Just Refl
+              LE  _         -> Nothing
 
 data (:<=?) :: Nat -> Nat -> * where
     LE  :: ((m <=? n) :~: 'True)  -> (m :<=? n)
-    NLE :: ((m <=? n) :~: 'False) -> (m :<=? n)
+    NLE :: ((m <=? n) :~: 'False) -> ((n <=? m) :~: 'True) -> (m :<=? n)
 
 (%<=?)
      :: (KnownNat m, KnownNat n)
@@ -125,11 +126,11 @@ data (:<=?) :: Nat -> Nat -> * where
      -> Proxy n
      -> (m :<=? n)
 m %<=? n | natVal m <= natVal n = LE  (unsafeCoerce Refl)
-         | otherwise            = NLE (unsafeCoerce Refl)
+         | otherwise            = NLE (unsafeCoerce Refl) (unsafeCoerce Refl)
 
 data SCmpNat :: Nat -> Nat -> * where
     CLT :: (CmpNat m n :~: 'LT) -> SCmpNat m n
-    CEQ :: (CmpNat m n :~: 'EQ) -> SCmpNat m n
+    CEQ :: (CmpNat m n :~: 'EQ) -> (m :~: n) -> SCmpNat m n
     CGT :: (CmpNat m n :~: 'GT) -> SCmpNat m n
 
 cmpNat
@@ -139,13 +140,13 @@ cmpNat
     -> SCmpNat m n
 cmpNat m n = case compare (natVal m) (natVal n) of
                LT -> CLT (unsafeCoerce Refl)
-               EQ -> CEQ (unsafeCoerce Refl)
+               EQ -> CEQ (unsafeCoerce Refl) (unsafeCoerce Refl)
                GT -> CGT (unsafeCoerce Refl)
 
 flipCmpNat :: SCmpNat m n -> SCmpNat n m
-flipCmpNat = \case CLT Refl -> CGT (unsafeCoerce Refl)
-                   CEQ Refl -> CEQ (unsafeCoerce Refl)
-                   CGT Refl -> CLT (unsafeCoerce Refl)
+flipCmpNat = \case CLT Refl      -> CGT (unsafeCoerce Refl)
+                   CEQ Refl Refl -> CEQ (unsafeCoerce Refl) Refl
+                   CGT Refl      -> CLT (unsafeCoerce Refl)
 
 cmpNatEq :: (CmpNat m n :~: 'EQ) -> (m :~: n)
 cmpNatEq = \case Refl -> unsafeCoerce Refl
@@ -153,7 +154,10 @@ cmpNatEq = \case Refl -> unsafeCoerce Refl
 eqCmpNat :: (m :~: n) -> (CmpNat m n :~: 'EQ)
 eqCmpNat = \case Refl -> unsafeCoerce Refl
 
+reflCmpNat :: (m :~: n) -> SCmpNat m n
+reflCmpNat r = CEQ (eqCmpNat r) r
+
 cmpNatLE :: SCmpNat m n -> (m :<=? n)
-cmpNatLE = \case CLT Refl -> LE  (unsafeCoerce Refl)
-                 CEQ Refl -> LE  (unsafeCoerce Refl)
-                 CGT Refl -> NLE (unsafeCoerce Refl)
+cmpNatLE = \case CLT Refl      -> LE  (unsafeCoerce Refl)
+                 CEQ Refl Refl -> LE  (unsafeCoerce Refl)
+                 CGT Refl      -> NLE (unsafeCoerce Refl) (unsafeCoerce Refl)
