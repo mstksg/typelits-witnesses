@@ -29,7 +29,7 @@
 --   
 --   See README for more information.
 @package typelits-witnesses
-@version 0.3.0.0
+@version 0.3.0.1
 
 
 -- | This module provides the ability to refine given <a>KnownNat</a>
@@ -142,22 +142,22 @@ module GHC.TypeLits.List
 --   you get a list of the represented <a>Integer</a>s for, say,
 --   <tt><a>Proxy</a> [1,2,3]</tt>.
 --   
---   <b>Deprecated: Use <tt>SingI</tt> from <i>singletons</i> instead</b>
+--   <b>Deprecated:</b> Use <tt>SingI</tt> from <i>singletons</i> instead.
 class KnownNats (ns :: [Nat])
 
--- | <b>Deprecated: Use <tt>fromSing</tt> from <i>singletons</i>
---   instead</b>
+-- | <b>Deprecated:</b> Use <tt>fromSing</tt> from <i>singletons</i>
+--   instead.
 natsVal :: KnownNats ns => p ns -> [Integer]
 
--- | <b>Deprecated: Use <tt>sing</tt> from <i>singletons</i> instead</b>
+-- | <b>Deprecated:</b> Use <tt>sing</tt> from <i>singletons</i> instead.
 natsList :: KnownNats ns => NatList ns
 
 -- | Represents unknown type-level lists of type-level natural numbers.
 --   It's a <a>NatList</a>, but you don't know what the list contains at
 --   compile-time.
 --   
---   <b>Deprecated: Use <tt>SomeSing</tt> from <i>singletons</i>
---   instead</b>
+--   <b>Deprecated:</b> Use <tt>SomeSing</tt> from <i>singletons</i>
+--   instead.
 data SomeNats :: *
 [SomeNats] :: KnownNats ns => !(NatList ns) -> SomeNats
 
@@ -169,7 +169,7 @@ data SomeNats :: *
 --   
 --   Typically generated using <a>natsList</a>.
 --   
---   <b>Deprecated: Use <tt>Sing</tt> from <i>singletons</i> instead</b>
+--   <b>Deprecated:</b> Use <tt>Sing</tt> from <i>singletons</i> instead.
 data NatList :: [Nat] -> *
 [ØNL] :: NatList '[]
 [:<#] :: (KnownNat n, KnownNats ns) => !(Proxy n) -> !(NatList ns) -> NatList (n : ns)
@@ -178,7 +178,7 @@ data NatList :: [Nat] -> *
 --   an unknown type-level list of naturals. Will return <a>Nothing</a> if
 --   any of the given <a>Integer</a>s is negative.
 --   
---   <b>Deprecated: Use <tt>toSing</tt> from <i>singletons</i> instead</b>
+--   <b>Deprecated:</b> Use <tt>toSing</tt> from <i>singletons</i> instead.
 someNatsVal :: [Integer] -> Maybe SomeNats
 
 -- | Like <a>someNatsVal</a>, but will also go ahead and produce
@@ -186,7 +186,7 @@ someNatsVal :: [Integer] -> Maybe SomeNats
 --   error on producing them, but extra care must be taken when using the
 --   produced <a>SomeNat</a>s.
 --   
---   <b>Deprecated: Use <tt>toSing</tt> from <i>singletons</i> instead</b>
+--   <b>Deprecated:</b> Use <tt>toSing</tt> from <i>singletons</i> instead.
 someNatsValPos :: [Integer] -> SomeNats
 
 -- | List equivalent of <a>reifyNat</a>. Given a list of integers, takes a
@@ -203,16 +203,16 @@ someNatsValPos :: [Integer] -> SomeNats
 --   from the <i>reflections</i> package. Use <a>reifyNats'</a> for a
 --   "safe" version.
 --   
---   <b>Deprecated: Use <tt>withSomeSing</tt> from <i>singletons</i>
---   instead</b>
+--   <b>Deprecated:</b> Use <tt>withSomeSing</tt> from <i>singletons</i>
+--   instead.
 reifyNats :: [Integer] -> (forall ns. KnownNats ns => NatList ns -> r) -> r
 
 -- | <a>Safe</a> version of <a>reifyNats</a>, which will only run the
 --   continuation if every <a>Integer</a> in the list is non-negative. If
 --   not, then returns the given "default" value instead.
 --   
---   <b>Deprecated: Use <tt>withSomeSing</tt> from <i>singletons</i>
---   instead</b>
+--   <b>Deprecated:</b> Use <tt>withSomeSing</tt> from <i>singletons</i>
+--   instead.
 reifyNats' :: [Integer] -> r -> (forall ns. KnownNats ns => NatList ns -> r) -> r
 
 -- | Get evidence that the two <a>KnownNats</a> lists are actually the
@@ -228,7 +228,7 @@ reifyNats' :: [Integer] -> r -> (forall ns. KnownNats ns => NatList ns -> r) -> 
 --     Nothing   -&gt; -- in this branch, they aren't
 --   </pre>
 --   
---   <b>Deprecated: Use <tt>%~</tt> from <i>singletons</i> instead</b>
+--   <b>Deprecated:</b> Use <tt>%~</tt> from <i>singletons</i> instead.
 sameNats :: NatList ns -> NatList ms -> Maybe (ns :~: ms)
 
 -- | The "eliminator" for <a>NatList</a>. You can think of this as a
@@ -279,22 +279,22 @@ mapNatList' :: (SomeNat -> SomeNat) -> SomeNats -> SomeNats
 --   <a>Symbol</a>s and take advantage of their <a>KnownSymbol</a>
 --   instances.
 --   
---   <b>Deprecated: Use 'SingI from <i>singletons</i> instead</b>
+--   <b>Deprecated:</b> Use 'SingI from <i>singletons</i> instead.
 class KnownSymbols (ss :: [Symbol])
 
--- | <b>Deprecated: Use <tt>fromSing</tt> from <i>singletons</i>
---   instead</b>
+-- | <b>Deprecated:</b> Use <tt>fromSing</tt> from <i>singletons</i>
+--   instead.
 symbolsVal :: KnownSymbols ss => p ss -> [String]
 
--- | <b>Deprecated: Use 'sing from <i>singletons</i> instead</b>
+-- | <b>Deprecated:</b> Use 'sing from <i>singletons</i> instead.
 symbolsList :: KnownSymbols ss => SymbolList ss
 
 -- | Represents unknown type-level lists of <a>Symbol</a>s. It's a
 --   <a>SymbolList</a>, but you don't know what the list contains at
 --   compile-time.
 --   
---   <b>Deprecated: Use <tt>SomeSing</tt> from <i>singletons</i>
---   instead</b>
+--   <b>Deprecated:</b> Use <tt>SomeSing</tt> from <i>singletons</i>
+--   instead.
 data SomeSymbols :: *
 [SomeSymbols] :: KnownSymbols ss => !(SymbolList ss) -> SomeSymbols
 
@@ -306,7 +306,7 @@ data SomeSymbols :: *
 --   
 --   Typically generated using <a>symbolsList</a>.
 --   
---   <b>Deprecated: Use <tt>Sing</tt> from <i>singletons</i> instead</b>
+--   <b>Deprecated:</b> Use <tt>Sing</tt> from <i>singletons</i> instead.
 data SymbolList :: [Symbol] -> *
 [ØSL] :: SymbolList '[]
 [:<$] :: (KnownSymbol s, KnownSymbols ss) => !(Proxy s) -> !(SymbolList ss) -> SymbolList (s : ss)
@@ -315,7 +315,7 @@ data SymbolList :: [Symbol] -> *
 --   an unknown type-level list of naturals. Will return <a>Nothing</a> if
 --   any of the given <a>Integer</a>s is negative.
 --   
---   <b>Deprecated: Use <tt>toSing</tt> from <i>singletons</i> instead</b>
+--   <b>Deprecated:</b> Use <tt>toSing</tt> from <i>singletons</i> instead.
 someSymbolsVal :: [String] -> SomeSymbols
 
 -- | List equivalent of <a>reifyNat</a>. Given a list of integers, takes a
@@ -325,8 +325,8 @@ someSymbolsVal :: [String] -> SomeSymbols
 --   
 --   Essentially a continuation-style version of <a>SomeSymbols</a>.
 --   
---   <b>Deprecated: Use <tt>withSomeSing</tt> from <i>singletons</i>
---   instead</b>
+--   <b>Deprecated:</b> Use <tt>withSomeSing</tt> from <i>singletons</i>
+--   instead.
 reifySymbols :: [String] -> (forall ss. KnownSymbols ss => SymbolList ss -> r) -> r
 
 -- | Get evidence that the two <a>KnownSymbols</a> lists are actually the
@@ -342,7 +342,7 @@ reifySymbols :: [String] -> (forall ss. KnownSymbols ss => SymbolList ss -> r) -
 --     Nothing   -&gt; -- in this branch, they aren't
 --   </pre>
 --   
---   <b>Deprecated: Use <tt>%~</tt> from <i>singletons</i> instead</b>
+--   <b>Deprecated:</b> Use <tt>%~</tt> from <i>singletons</i> instead.
 sameSymbols :: SymbolList ns -> SymbolList ms -> Maybe (ns :~: ms)
 
 -- | The "eliminator" for <a>SymbolList</a>. You can think of this as a
