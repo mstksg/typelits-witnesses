@@ -1,3 +1,11 @@
+Version 0.3.0.1
+===============
+
+<https://github.com/mstksg/typelits-witnesses/releases/tag/v0.3.0.1>
+
+*   Documentation fixes because deprecation warnings were not showing up on
+    haddocks for *GHC.TypeLits.List*.
+
 Version 0.3.0.0
 ===============
 

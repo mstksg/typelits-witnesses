@@ -91,8 +91,12 @@ import GHC.TypeLits
 --
 -- It also has an analogy to 'natVal', 'natsVal', which lets you get a list
 -- of the represented 'Integer's for, say, @'Proxy' [1,2,3]@.
+--
+-- __Deprecated:__ Use 'SingI' from /singletons/ instead.
 class KnownNats (ns :: [Nat]) where
+    -- | __Deprecated:__ Use 'fromSing' from /singletons/ instead.
     natsVal  :: p ns -> [Integer]
+    -- | __Deprecated:__ Use 'sing' from /singletons/ instead.
     natsList :: NatList ns
 {-# DEPRECATED KnownNats "Use SingI from the singletons package instead" #-}
 {-# DEPRECATED natsVal "Use fromSing from the singletons package instead" #-}
@@ -109,6 +113,8 @@ instance (KnownNat n, KnownNats ns) => KnownNats (n ': ns) where
 -- | Represents unknown type-level lists of type-level natural numbers.
 -- It's a 'NatList', but you don't know what the list contains at
 -- compile-time.
+--
+-- __Deprecated:__ Use 'SomeSing' from /singletons/ instead.
 data SomeNats :: * where
     SomeNats :: KnownNats ns => !(NatList ns) -> SomeNats
 {-# DEPRECATED SomeNats "Use SomeSing from the singletons package instead" #-}
@@ -119,6 +125,8 @@ data SomeNats :: * where
 -- erasure), is more or less equivalent to a @['Integer']@.
 --
 -- Typically generated using 'natsList'.
+--
+-- __Deprecated:__ Use 'Sing' from /singletons/ instead.
 data NatList :: [Nat] -> * where
     ØNL   :: NatList '[]
     (:<#) :: (KnownNat n, KnownNats ns)
@@ -212,6 +220,8 @@ mapNatList' f = runIdentity . traverseNatList' (Identity . f)
 -- | List equivalent of 'someNatVal'.  Convert a list of integers into an
 -- unknown type-level list of naturals.  Will return 'Nothing' if any of
 -- the given 'Integer's is negative.
+--
+-- __Deprecated:__ Use 'toSing' from /singletons/ instead.
 someNatsVal :: [Integer] -> Maybe SomeNats
 someNatsVal []     = Just (SomeNats ØNL)
 someNatsVal (n:ns) = do
@@ -231,6 +241,8 @@ someNatsVal (n:ns) = do
 -- /should/ be called @reifyNatsPos@; however, the naming choice is for
 -- consistency with 'reifyNat' from the /reflections/ package.  Use
 -- 'reifyNats'' for a "safe" version.
+--
+-- __Deprecated:__ Use 'withSomeSing' from /singletons/ instead.
 reifyNats :: [Integer] -> (forall ns. KnownNats ns => NatList ns -> r) -> r
 reifyNats []     f = f ØNL
 reifyNats (n:ns) f = reifyNat n $ \m ->
@@ -241,6 +253,8 @@ reifyNats (n:ns) f = reifyNat n $ \m ->
 -- | "Safe" version of 'reifyNats', which will only run the continuation if
 -- every 'Integer' in the list is non-negative.  If not, then returns
 -- the given "default" value instead.
+--
+-- __Deprecated:__ Use 'withSomeSing' from /singletons/ instead.
 reifyNats'
     :: [Integer]
     -> r
@@ -255,6 +269,8 @@ reifyNats' ns d f =
 -- | Like 'someNatsVal', but will also go ahead and produce 'KnownNat's
 -- whose integer values are negative.  It won't ever error on producing
 -- them, but extra care must be taken when using the produced 'SomeNat's.
+--
+-- __Deprecated:__ Use 'toSing' from /singletons/ instead.
 someNatsValPos :: [Integer] -> SomeNats
 someNatsValPos ns = reifyNats ns SomeNats
 {-# DEPRECATED someNatsValPos "Use toSing from the singletons package instead" #-}
@@ -270,6 +286,8 @@ someNatsValPos ns = reifyNats ns SomeNats
 --                  -- are the same.
 --   Nothing   -> -- in this branch, they aren't
 -- @
+--
+-- __Deprecated:__ Use '%~' from /singletons/ instead.
 sameNats
     :: NatList ns
     -> NatList ms
@@ -298,8 +316,12 @@ sameNats = \case
 -- also lets you generate a @'SymbolList' ss@, in order to iterate over the
 -- type-level list of 'Symbol's and take advantage of their 'KnownSymbol'
 -- instances.
+--
+-- __Deprecated:__ Use 'SingI from /singletons/ instead.
 class KnownSymbols (ss :: [Symbol]) where
+    -- | __Deprecated:__ Use 'fromSing' from /singletons/ instead.
     symbolsVal  :: p ss -> [String]
+    -- | __Deprecated:__ Use 'sing from /singletons/ instead.
     symbolsList :: SymbolList ss
 {-# DEPRECATED KnownSymbols "Use SingI from the singletons package instead" #-}
 {-# DEPRECATED symbolsVal "Use fromSing from the singletons package instead" #-}
@@ -315,6 +337,8 @@ instance (KnownSymbol s, KnownSymbols ss) => KnownSymbols (s ': ss) where
 
 -- | Represents unknown type-level lists of 'Symbol's. It's a 'SymbolList',
 -- but you don't know what the list contains at compile-time.
+--
+-- __Deprecated:__ Use 'SomeSing' from /singletons/ instead.
 data SomeSymbols :: * where
     SomeSymbols :: KnownSymbols ss => !(SymbolList ss) -> SomeSymbols
 {-# DEPRECATED SomeSymbols "Use SomeSing from the singletons package instead" #-}
@@ -325,6 +349,8 @@ data SomeSymbols :: * where
 -- (after type erasure), is more or less equivalent to a @['String']@.
 --
 -- Typically generated using 'symbolsList'.
+--
+-- __Deprecated:__ Use 'Sing' from /singletons/ instead.
 data SymbolList :: [Symbol] -> * where
     ØSL   :: SymbolList '[]
     (:<$) :: (KnownSymbol s, KnownSymbols ss)
@@ -418,6 +444,8 @@ elimSymbolList z s = \case
 -- | List equivalent of 'someNatVal'.  Convert a list of integers into an
 -- unknown type-level list of naturals.  Will return 'Nothing' if any of
 -- the given 'Integer's is negative.
+--
+-- __Deprecated:__ Use 'toSing' from /singletons/ instead.
 someSymbolsVal :: [String] -> SomeSymbols
 someSymbolsVal []     = SomeSymbols ØSL
 someSymbolsVal (s:ss) =
@@ -433,6 +461,8 @@ someSymbolsVal (s:ss) =
 -- the given list, where every @s@ in @ss@ has a 'KnownSymbol' instance.
 --
 -- Essentially a continuation-style version of 'SomeSymbols'.
+--
+-- __Deprecated:__ Use 'withSomeSing' from /singletons/ instead.
 reifySymbols :: [String]
              -> (forall ss. KnownSymbols ss => SymbolList ss -> r)
              -> r
@@ -454,6 +484,8 @@ reifySymbols (s:ss) f = reifySymbol s $ \t ->
 --                  -- two ['Symbol']s are the same
 --   Nothing   -> -- in this branch, they aren't
 -- @
+--
+-- __Deprecated:__ Use '%~' from /singletons/ instead.
 sameSymbols
     :: SymbolList ns
     -> SymbolList ms
