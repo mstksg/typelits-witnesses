@@ -29,7 +29,7 @@
 --   
 --   See README for more information.
 @package typelits-witnesses
-@version 0.3.0.1
+@version 0.3.0.2
 
 
 -- | This module provides the ability to refine given <a>KnownNat</a>
@@ -96,14 +96,14 @@ module GHC.TypeLits.Compare
 data (:<=?) :: Nat -> Nat -> *
 [LE] :: ((m <=? n) :~:  'True) -> (m :<=? n)
 [NLE] :: ((m <=? n) :~:  'False) -> ((n <=? m) :~:  'True) -> (m :<=? n)
-(%<=?) :: (KnownNat m, KnownNat n) => p m -> p n -> (m :<=? n)
-isLE :: (KnownNat m, KnownNat n) => p m -> p n -> Maybe ((m <=? n) :~:  'True)
-isNLE :: (KnownNat m, KnownNat n) => p m -> p n -> Maybe ((m <=? n) :~:  'False)
+(%<=?) :: (KnownNat m, KnownNat n) => p m -> q n -> (m :<=? n)
+isLE :: (KnownNat m, KnownNat n) => p m -> q n -> Maybe ((m <=? n) :~:  'True)
+isNLE :: (KnownNat m, KnownNat n) => p m -> q n -> Maybe ((m <=? n) :~:  'False)
 data SCmpNat :: Nat -> Nat -> *
 [CLT] :: (CmpNat m n :~:  'LT) -> SCmpNat m n
 [CEQ] :: (CmpNat m n :~:  'EQ) -> (m :~: n) -> SCmpNat m n
 [CGT] :: (CmpNat m n :~:  'GT) -> SCmpNat m n
-cmpNat :: (KnownNat m, KnownNat n) => p m -> p n -> SCmpNat m n
+cmpNat :: (KnownNat m, KnownNat n) => p m -> q n -> SCmpNat m n
 flipCmpNat :: SCmpNat m n -> SCmpNat n m
 cmpNatEq :: (CmpNat m n :~:  'EQ) -> (m :~: n)
 eqCmpNat :: (m :~: n) -> (CmpNat m n :~:  'EQ)
