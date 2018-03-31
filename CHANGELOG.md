@@ -1,3 +1,13 @@
+Version 0.3.0.2
+===============
+
+<https://github.com/mstksg/typelits-witnesses/releases/tag/v0.3.0.2>
+
+*March 30, 2018*
+
+*   Functions taking multiple `p m` in *GHC.TypeLits.Compare* now are able to
+    take different "proxy" types (`p` and `q`).
+
 Version 0.3.0.1
 ===============
 
