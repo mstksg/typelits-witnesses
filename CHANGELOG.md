@@ -1,3 +1,12 @@
+Version 0.3.0.3
+===============
+
+<https://github.com/mstksg/typelits-witnesses/releases/tag/v0.3.0.3>
+
+*October 1, 2018*
+
+*   Fix build for GHC 8.6 and `TypeIsStar` changes.
+
 Version 0.3.0.2
 ===============
 

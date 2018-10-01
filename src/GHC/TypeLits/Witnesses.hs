@@ -1,9 +1,9 @@
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE ConstraintKinds     #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE PolyKinds           #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE TypeOperators       #-}
 
 -- |
 -- Module      : GHC.TypeLits.Witnesses
@@ -14,8 +14,6 @@
 -- Maintainer  : justin@jle.im
 -- Stability   : unstable
 -- Portability : non-portable
---
--- __Deprecated: Use the /singletons/ package instead__
 --
 -- This module provides witnesses for instances that result from the
 -- various arithmetic operations on GHC TypeLits 'Nat' types.  In general,
@@ -69,10 +67,10 @@
 -- functions that rely on 'KnownNat' instances to be non-negative can
 -- potentially break.
 --
---
 
 
-module GHC.TypeLits.Witnesses (
+module GHC.TypeLits.Witnesses
+  {-# DEPRECATED "Use singletons package instead" #-} (
   -- * Singletons
   -- $singletons
   -- * High level wrapper
@@ -92,11 +90,11 @@ module GHC.TypeLits.Witnesses (
   , entailExp
   ) where
 
-import Data.Constraint
-import GHC.TypeLits
-import Data.Proxy
-import Data.Reflection
-import Unsafe.Coerce
+import           Data.Constraint
+import           Data.Proxy
+import           Data.Reflection
+import           GHC.TypeLits
+import           Unsafe.Coerce
 
 -- $singletons
 --

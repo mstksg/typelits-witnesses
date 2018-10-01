@@ -1,16 +1,16 @@
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE PolyKinds #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ConstraintKinds      #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE KindSignatures       #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE PolyKinds            #-}
+{-# LANGUAGE RankNTypes           #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE StandaloneDeriving   #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeInType           #-}
+{-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 -- |
@@ -69,12 +69,13 @@ module GHC.TypeLits.List
   , mapSymbolList'
   ) where
 
-import Data.Functor.Identity
-import Data.Proxy
-import Prelude.Compat
-import Data.Reflection
-import Data.Type.Equality
-import GHC.TypeLits
+import           Data.Functor.Identity
+import           Data.Kind
+import           Data.Proxy
+import           Data.Reflection
+import           Data.Type.Equality
+import           GHC.TypeLits
+import           Prelude.Compat
 
 
 -- | @'KnownNats' ns@ is intended to represent that every 'Nat' in the
@@ -115,7 +116,7 @@ instance (KnownNat n, KnownNats ns) => KnownNats (n ': ns) where
 -- compile-time.
 --
 -- __Deprecated:__ Use 'SomeSing' from /singletons/ instead.
-data SomeNats :: * where
+data SomeNats :: Type where
     SomeNats :: KnownNats ns => !(NatList ns) -> SomeNats
 {-# DEPRECATED SomeNats "Use SomeSing from the singletons package instead" #-}
 
@@ -127,7 +128,7 @@ data SomeNats :: * where
 -- Typically generated using 'natsList'.
 --
 -- __Deprecated:__ Use 'Sing' from /singletons/ instead.
-data NatList :: [Nat] -> * where
+data NatList :: [Nat] -> Type where
     ØNL   :: NatList '[]
     (:<#) :: (KnownNat n, KnownNats ns)
           => !(Proxy n) -> !(NatList ns) -> NatList (n ': ns)
@@ -339,7 +340,7 @@ instance (KnownSymbol s, KnownSymbols ss) => KnownSymbols (s ': ss) where
 -- but you don't know what the list contains at compile-time.
 --
 -- __Deprecated:__ Use 'SomeSing' from /singletons/ instead.
-data SomeSymbols :: * where
+data SomeSymbols :: Type where
     SomeSymbols :: KnownSymbols ss => !(SymbolList ss) -> SomeSymbols
 {-# DEPRECATED SomeSymbols "Use SomeSing from the singletons package instead" #-}
 
@@ -351,7 +352,7 @@ data SomeSymbols :: * where
 -- Typically generated using 'symbolsList'.
 --
 -- __Deprecated:__ Use 'Sing' from /singletons/ instead.
-data SymbolList :: [Symbol] -> * where
+data SymbolList :: [Symbol] -> Type where
     ØSL   :: SymbolList '[]
     (:<$) :: (KnownSymbol s, KnownSymbols ss)
           => !(Proxy s) -> !(SymbolList ss) -> SymbolList (s ': ss)

@@ -1,9 +1,10 @@
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeInType          #-}
 {-# LANGUAGE TypeOperators       #-}
 
 -- |
@@ -93,9 +94,10 @@ module GHC.TypeLits.Compare
   )
   where
 
-import Data.Type.Equality
-import GHC.TypeLits
-import Unsafe.Coerce
+import           Data.Kind
+import           Data.Type.Equality
+import           GHC.TypeLits
+import           Unsafe.Coerce
 
 isLE
     :: (KnownNat m, KnownNat n)
@@ -112,10 +114,10 @@ isNLE
     -> q n
     -> Maybe ((m <=? n) :~: 'False)
 isNLE m n = case m %<=? n of
-              NLE Refl Refl -> Just Refl
-              LE  _         -> Nothing
+    NLE Refl Refl -> Just Refl
+    LE  _         -> Nothing
 
-data (:<=?) :: Nat -> Nat -> * where
+data (:<=?) :: Nat -> Nat -> Type where
     LE  :: ((m <=? n) :~: 'True)  -> (m :<=? n)
     NLE :: ((m <=? n) :~: 'False) -> ((n <=? m) :~: 'True) -> (m :<=? n)
 
@@ -127,7 +129,7 @@ data (:<=?) :: Nat -> Nat -> * where
 m %<=? n | natVal m <= natVal n = LE  (unsafeCoerce Refl)
          | otherwise            = NLE (unsafeCoerce Refl) (unsafeCoerce Refl)
 
-data SCmpNat :: Nat -> Nat -> * where
+data SCmpNat :: Nat -> Nat -> Type where
     CLT :: (CmpNat m n :~: 'LT) -> SCmpNat m n
     CEQ :: (CmpNat m n :~: 'EQ) -> (m :~: n) -> SCmpNat m n
     CGT :: (CmpNat m n :~: 'GT) -> SCmpNat m n
