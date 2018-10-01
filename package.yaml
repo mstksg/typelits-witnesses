@@ -65,10 +65,8 @@ extra-source-files:
 - CHANGELOG.md
 dependencies:
 - base >=4.7 && <5
-- base-compat
 - constraints
 - reflection >=2
-- transformers
 library:
   source-dirs: src
   ghc-options: -Wall
@@ -76,7 +74,3 @@ library:
   - GHC.TypeLits.Witnesses
   - GHC.TypeLits.List
   - GHC.TypeLits.Compare
-  when:
-  - condition: impl(ghc >=8.6)
-    default-extensions:
-    - NoStarIsType

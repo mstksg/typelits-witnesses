@@ -3,7 +3,6 @@
 {-# LANGUAGE GADTs                #-}
 {-# LANGUAGE KindSignatures       #-}
 {-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE PolyKinds            #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
@@ -75,7 +74,6 @@ import           Data.Proxy
 import           Data.Reflection
 import           Data.Type.Equality
 import           GHC.TypeLits
-import           Prelude.Compat
 
 
 -- | @'KnownNats' ns@ is intended to represent that every 'Nat' in the
