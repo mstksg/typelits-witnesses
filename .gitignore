@@ -2,4 +2,4 @@
 /.cabal-sandbox
 /dist
 /.stack-work
-
+/typelits-witnesses.cabal
