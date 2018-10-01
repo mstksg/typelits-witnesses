@@ -6,6 +6,7 @@ Version 0.3.0.3
 *October 1, 2018*
 
 *   Fix build for GHC 8.6 and `TypeIsStar` changes.
+*   Break compatibility with GHC < 8.0
 
 Version 0.3.0.2
 ===============
