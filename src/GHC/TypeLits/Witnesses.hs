@@ -113,7 +113,6 @@ module GHC.TypeLits.Witnesses (
   , toSomeSymbol
   ) where
 
-import           Data.Functor
 import           Data.GADT.Compare
 import           Data.GADT.Show
 import           Data.Proxy
@@ -151,7 +150,7 @@ instance GShow SNat where
 
 instance TestEquality SNat where
     testEquality (SNat :: SNat n) (SNat :: SNat m) =
-      sameNat (Proxy :: Proxy n) (Proxy :: Proxy m) <&> \case
+      flip fmap (sameNat (Proxy :: Proxy n) (Proxy :: Proxy m)) $ \case
         Refl -> Refl
 
 instance GEq SNat where
@@ -355,7 +354,7 @@ instance GShow SSymbol where
 
 instance TestEquality SSymbol where
     testEquality (SSymbol :: SSymbol n) (SSymbol :: SSymbol m) =
-      sameSymbol (Proxy :: Proxy n) (Proxy :: Proxy m) <&> \case
+      flip fmap (sameSymbol (Proxy :: Proxy n) (Proxy :: Proxy m)) $ \case
         Refl -> Refl
 
 instance GEq SSymbol where
