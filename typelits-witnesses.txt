@@ -4,32 +4,24 @@
 
 -- | Existential witnesses, singletons, and classes for operations on GHC TypeLits
 --   
---   Provides witnesses for <a>KnownNat</a> and <a>KnownSymbol</a>
---   instances for various operations on GHC TypeLits - in particular, the
---   arithmetic operations defined in <a>GHC.TypeLits</a>, and also for
---   type-level lists of <a>KnownNat</a> and <a>KnownSymbol</a> instances.
+--   This library contains:
 --   
---   This is useful for situations where you have <tt><a>KnownNat</a>
---   n</tt>, and you want to prove to GHC <tt><a>KnownNat</a> (n + 3)</tt>,
---   or <tt><a>KnownNat</a> (2*n + 4)</tt>, or when constraints on the
---   lower or upper limits of <tt>n</tt> are needed.
---   
---   It's also useful for when you want to work with type level lists of
---   <a>KnownNat</a> or <a>KnownSymbol</a> instances and singletons for
---   traversing them, and be able to apply analogies of <a>natVal</a> and
---   <a>symbolVal</a> to lists with analogies for <a>SomeNat</a> and
---   <a>SomeSymbol</a>.
---   
---   Note that most of the functionality in this library can be reproduced
---   in a more generic way using the great <a>singletons</a> library. The
---   versions here are provided as a "plumbing included" alternative that
---   makes some commonly found design patterns involving GHC's TypeLits
---   functionality a little smoother, especially when working with external
---   libraries or GHC TypeLit's Nat comparison API.
---   
---   See README for more information.
+--   <ul>
+--   <li>A small specialized subset of the *singletons* library as it
+--   pertains to <a>Nat</a> and <a>Symbol</a>, for when you need some
+--   simple functionality without wanting to invoke the entire *singletons*
+--   library.</li>
+--   <li>Operations for manipulating these singletons and <a>KnownNat</a>
+--   and <a>KnownSymbol</a> instances, such as addition and multiplication
+--   of singletons/<a>KnownNat</a> instances.</li>
+--   <li>Operations for the comparison of <a>Nat</a>s in a way that works
+--   well with</li>
+--   <li>GHC.TypeLits*'s different comparison systems. This is helpful for
+--   bridging together libraries that use different systems; this
+--   functionality is not yet provided by *singletons*.</li>
+--   </ul>
 @package typelits-witnesses
-@version 0.3.0.2
+@version 0.4.0.0
 
 
 -- | This module provides the ability to refine given <a>KnownNat</a>
@@ -40,7 +32,7 @@
 --   but only <tt><a>KnownNat</a> n</tt> is available:
 --   
 --   <pre>
---   foo :: (KnownNat n, 1 <a>&lt;=</a> n) =&gt; <tt>Proxy</tt> n -&gt; Int
+--   foo :: (KnownNat n, 1 <a>&lt;=</a> n) =&gt; <a>Proxy</a> n -&gt; Int
 --   
 --   bar :: KnownNat n =&gt; Proxy n -&gt; Int
 --   bar n = case (Proxy :: Proxy 1) <a>%&lt;=?</a> n of
@@ -50,9 +42,8 @@
 --   
 --   <tt>foo</tt> requires that <tt>1 &lt;= n</tt>, but <tt>bar</tt> has to
 --   handle all cases of <tt>n</tt>. <tt>%&lt;=?</tt> lets you compare the
---   <a>KnownNat</a>s in two <tt>Proxy</tt>s and returns a
---   <tt>:&lt;=?</tt>, which has two constructors, <a>LE</a> and
---   <a>NLE</a>.
+--   <a>KnownNat</a>s in two <a>Proxy</a>s and returns a <tt>:&lt;=?</tt>,
+--   which has two constructors, <a>LE</a> and <a>NLE</a>.
 --   
 --   If you pattern match on the result, in the <a>LE</a> branch, the
 --   constraint <tt>1 &lt;= n</tt> will be satisfied according to GHC, so
@@ -92,494 +83,396 @@
 --   have to work with libraries that mix the two methods) or
 --   <a>cmpNatEq</a> and <a>eqCmpNat</a> to get to/from witnesses for
 --   equality of the two <a>Nat</a>s.
+--   
+--   This module is useful for helping bridge between libraries that use
+--   different <a>Nat</a>-based comparison systems in their type
+--   constraints.
 module GHC.TypeLits.Compare
-data (:<=?) :: Nat -> Nat -> *
-[LE] :: ((m <=? n) :~:  'True) -> (m :<=? n)
-[NLE] :: ((m <=? n) :~:  'False) -> ((n <=? m) :~:  'True) -> (m :<=? n)
-(%<=?) :: (KnownNat m, KnownNat n) => p m -> q n -> (m :<=? n)
+
+-- | Two possible ordered relationships between two natural numbers.
+data (:<=?) :: Nat -> Nat -> Type
+[LE] :: ((m <=? n) :~:  'True) -> m :<=? n
+[NLE] :: ((m <=? n) :~:  'False) -> ((n <=? m) :~:  'True) -> m :<=? n
+
+-- | Compare <tt>m</tt> and <tt>n</tt>, classifying their relationship into
+--   some constructor of <a>:&lt;=?</a>.
+(%<=?) :: (KnownNat m, KnownNat n) => p m -> q n -> m :<=? n
+
+-- | Simplified version of <a>%&lt;=?</a>: check if <tt>m</tt> is less than
+--   or equal to to <tt>n</tt>. If it is, match on <tt><a>Just</a>
+--   <a>Refl</a></tt> to get GHC to believe it, within the body of the
+--   pattern match.
 isLE :: (KnownNat m, KnownNat n) => p m -> q n -> Maybe ((m <=? n) :~:  'True)
+
+-- | Simplified version of <a>%&lt;=?</a>: check if <tt>m</tt> is not less
+--   than or equal to to <tt>n</tt>. If it is, match on <tt><a>Just</a>
+--   <a>Refl</a></tt> to get GHC to believe it, within the body of the
+--   pattern match.
 isNLE :: (KnownNat m, KnownNat n) => p m -> q n -> Maybe ((m <=? n) :~:  'False)
-data SCmpNat :: Nat -> Nat -> *
+
+-- | Three possible ordered relationships between two natural numbers.
+data SCmpNat :: Nat -> Nat -> Type
 [CLT] :: (CmpNat m n :~:  'LT) -> SCmpNat m n
 [CEQ] :: (CmpNat m n :~:  'EQ) -> (m :~: n) -> SCmpNat m n
 [CGT] :: (CmpNat m n :~:  'GT) -> SCmpNat m n
+
+-- | Compare <tt>m</tt> and <tt>n</tt>, classifying their relationship into
+--   some constructor of <a>SCmpNat</a>.
 cmpNat :: (KnownNat m, KnownNat n) => p m -> q n -> SCmpNat m n
+
+-- | Flip an inequality.
 flipCmpNat :: SCmpNat m n -> SCmpNat n m
-cmpNatEq :: (CmpNat m n :~:  'EQ) -> (m :~: n)
-eqCmpNat :: (m :~: n) -> (CmpNat m n :~:  'EQ)
+
+-- | <tt><a>CmpNat</a> m n</tt> being <a>EQ</a> implies that <tt>m</tt> is
+--   equal to <tt>n</tt>.
+cmpNatEq :: (CmpNat m n :~:  'EQ) -> m :~: n
+
+-- | A witness of equality implies that <tt><a>CmpNat</a> m n</tt> is
+--   <a>Eq</a>.
+eqCmpNat :: (m :~: n) -> CmpNat m n :~:  'EQ
+
+-- | Inject a witness of equality into an <a>SCmpNat</a> at <a>CEQ</a>.
 reflCmpNat :: (m :~: n) -> SCmpNat m n
-cmpNatLE :: SCmpNat m n -> (m :<=? n)
+
+-- | Convert to <a>:&lt;=?</a>
+cmpNatLE :: SCmpNat m n -> m :<=? n
+
+-- | Convert to <a>GOrdering</a>
+cmpNatGOrdering :: SCmpNat n m -> GOrdering n m
 
 
--- | Provides the <a>KnownNats</a> and <a>KnownSymbols</a> typeclasses in
---   analogy to <a>KnownNat</a> and <a>KnownSymbol</a> from
---   <a>GHC.TypeLits</a>. Also provides singleton-esque structures for
---   traversing over type-level lists of <a>Nat</a>s and <a>Symbol</a>s.
---   Comes with continuation-style reifiers and existential types for
---   dependent typing usage, and as an analogy with <a>SomeNat</a> and
---   <a>SomeSymbol</a>.
+-- | This module essentially provides a lightweight subset of the
+--   <i>singletons</i> library specifically for <a>Nat</a> and
+--   <a>Symbol</a>, from <a>GHC.TypeLits</a>.
 --   
---   See typeclass documentations and README for more information.
-
--- | <i>Deprecated: Use singletons package instead</i>
-module GHC.TypeLits.List
-
--- | <tt><a>KnownNats</a> ns</tt> is intended to represent that every
---   <a>Nat</a> in the type-level list <tt>ns</tt> is itself a
---   <a>KnownNat</a> (meaning, you can use <a>natVal</a> to get its
---   corresponding <a>Integer</a>).
---   
---   In practice, just knowing that every item has a <a>KnownNat</a>
---   instance is not enough; it's nice, but unless you're able to "iterate"
---   over every <a>Nat</a> in the list, it's of limited use. That's why
---   this class also provides a constructor for <tt><a>NatList</a> ns</tt>,
---   so that you can produce a <a>NatList</a> for every <tt><a>KnownNat</a>
---   ns</tt>, which you can iterate over to get <tt><a>Proxy</a> n</tt>s
---   for every <tt>n</tt> in <tt>ns</tt> along with the <tt><a>KnownNat</a>
---   n</tt> instances.
---   
---   It also has an analogy to <a>natVal</a>, <a>natsVal</a>, which lets
---   you get a list of the represented <a>Integer</a>s for, say,
---   <tt><a>Proxy</a> [1,2,3]</tt>.
---   
---   <b>Deprecated:</b> Use <tt>SingI</tt> from <i>singletons</i> instead.
-class KnownNats (ns :: [Nat])
-
--- | <b>Deprecated:</b> Use <tt>fromSing</tt> from <i>singletons</i>
---   instead.
-natsVal :: KnownNats ns => p ns -> [Integer]
-
--- | <b>Deprecated:</b> Use <tt>sing</tt> from <i>singletons</i> instead.
-natsList :: KnownNats ns => NatList ns
-
--- | Represents unknown type-level lists of type-level natural numbers.
---   It's a <a>NatList</a>, but you don't know what the list contains at
---   compile-time.
---   
---   <b>Deprecated:</b> Use <tt>SomeSing</tt> from <i>singletons</i>
---   instead.
-data SomeNats :: *
-[SomeNats] :: KnownNats ns => !(NatList ns) -> SomeNats
-
--- | Singleton-esque type for "traversing" over type-level lists of
---   <a>Nat</a>s. Essentially contains a (value-level) list of
---   <tt><a>Proxy</a> n</tt>s, but each <tt>n</tt> has a <a>KnownNat</a>
---   instance for you to use. At runtime (after type erasure), is more or
---   less equivalent to a <tt>[<a>Integer</a>]</tt>.
---   
---   Typically generated using <a>natsList</a>.
---   
---   <b>Deprecated:</b> Use <tt>Sing</tt> from <i>singletons</i> instead.
-data NatList :: [Nat] -> *
-[ØNL] :: NatList '[]
-[:<#] :: (KnownNat n, KnownNats ns) => !(Proxy n) -> !(NatList ns) -> NatList (n : ns)
-
--- | List equivalent of <a>someNatVal</a>. Convert a list of integers into
---   an unknown type-level list of naturals. Will return <a>Nothing</a> if
---   any of the given <a>Integer</a>s is negative.
---   
---   <b>Deprecated:</b> Use <tt>toSing</tt> from <i>singletons</i> instead.
-someNatsVal :: [Integer] -> Maybe SomeNats
-
--- | Like <a>someNatsVal</a>, but will also go ahead and produce
---   <a>KnownNat</a>s whose integer values are negative. It won't ever
---   error on producing them, but extra care must be taken when using the
---   produced <a>SomeNat</a>s.
---   
---   <b>Deprecated:</b> Use <tt>toSing</tt> from <i>singletons</i> instead.
-someNatsValPos :: [Integer] -> SomeNats
-
--- | List equivalent of <a>reifyNat</a>. Given a list of integers, takes a
---   function in an "environment" with a <tt><a>NatList</a> ns</tt>
---   corresponding to the given list, where every <tt>n</tt> in <tt>ns</tt>
---   has a <a>KnownNat</a> instance.
---   
---   Essentially a continuation-style version of <a>SomeNats</a>.
---   
---   Be aware that this also produces <tt><a>KnownNat</a> n</tt>s where
---   <tt>n</tt> is negative, without complaining. To be consistent, within
---   the library, this <i>should</i> be called <tt>reifyNatsPos</tt>;
---   however, the naming choice is for consistency with <a>reifyNat</a>
---   from the <i>reflections</i> package. Use <a>reifyNats'</a> for a
---   "safe" version.
---   
---   <b>Deprecated:</b> Use <tt>withSomeSing</tt> from <i>singletons</i>
---   instead.
-reifyNats :: [Integer] -> (forall ns. KnownNats ns => NatList ns -> r) -> r
-
--- | <a>Safe</a> version of <a>reifyNats</a>, which will only run the
---   continuation if every <a>Integer</a> in the list is non-negative. If
---   not, then returns the given "default" value instead.
---   
---   <b>Deprecated:</b> Use <tt>withSomeSing</tt> from <i>singletons</i>
---   instead.
-reifyNats' :: [Integer] -> r -> (forall ns. KnownNats ns => NatList ns -> r) -> r
-
--- | Get evidence that the two <a>KnownNats</a> lists are actually the
---   "same" list of <a>Nat</a>s (that they were instantiated with the same
---   numbers).
---   
---   Essentialy runs <a>sameNat</a> over the lists:
---   
---   <pre>
---   case <a>sameNats</a> ns ms of
---     Just <a>Refl</a> -&gt; -- in this branch, GHC recognizes that the two [<a>Nat</a>]s
---                    -- are the same.
---     Nothing   -&gt; -- in this branch, they aren't
---   </pre>
---   
---   <b>Deprecated:</b> Use <tt>%~</tt> from <i>singletons</i> instead.
-sameNats :: NatList ns -> NatList ms -> Maybe (ns :~: ms)
-
--- | The "eliminator" for <a>NatList</a>. You can think of this as a
---   dependently typed analogy for a fold.
---   
---   <i>Since 0.2.1.0</i>
-elimNatList :: forall p ns. () => p '[] -> (forall m ms. (KnownNat m, KnownNats ms) => Proxy m -> p ms -> p (m : ms)) -> NatList ns -> p ns
-
--- | Utility function for traversing over all of the <tt><a>Proxy</a>
---   n</tt>s in a <a>NatList</a>, each with the corresponding
---   <a>KnownNat</a> instance available. Gives the the ability to "change"
---   the represented natural number to a new one, in a <a>SomeNat</a>.
---   
---   Can be considered a form of a <tt>Traversal' <a>SomeNats</a>
---   <a>SomeNat</a></tt>.
-traverseNatList :: forall f ns. Applicative f => (forall n. KnownNat n => Proxy n -> f SomeNat) -> NatList ns -> f SomeNats
-
--- | Like <a>traverseNatList</a>, but literally actually a <tt>Traversal'
---   <a>SomeNats</a> <a>SomeNat</a></tt>, avoiding the Rank-2 types, so is
---   usable with lens-library machinery.
-traverseNatList' :: forall f. Applicative f => (SomeNat -> f SomeNat) -> SomeNats -> f SomeNats
-
--- | Utility function for traversing over all of the <tt><a>Proxy</a>
---   n</tt>s in a <a>NatList</a>, each with the corresponding
---   <a>KnownNat</a> instance available. Results are ignored.
-traverseNatList_ :: forall f a ns. Applicative f => (forall n. KnownNat n => Proxy n -> f a) -> NatList ns -> f ()
-
--- | Utility function for "mapping" over each of the <a>Nat</a>s in the
---   <a>NatList</a>.
-mapNatList :: (forall n. KnownNat n => Proxy n -> SomeNat) -> NatList ns -> SomeNats
-
--- | Like <a>mapNatList</a>, but avoids the Rank-2 types, so can be used
---   with <a>.</a> (function composition) and in other situations where
---   <a>mapNatList</a> would cause problems.
-mapNatList' :: (SomeNat -> SomeNat) -> SomeNats -> SomeNats
-
--- | <tt><a>KnownSymbols</a> ss</tt> is intended to represent that every
---   <a>Symbol</a> in the type-level list <tt>ss</tt> is itself a
---   <a>KnownSymbol</a> (meaning, you can use <a>symbolVal</a> to get its
---   corresponding <a>String</a>).
---   
---   You can use <a>symbolsVal</a> to get the corresponding
---   <tt>[<a>String</a>]</tt> from <tt><a>KnownSymbols</a> ss</tt>.
---   
---   For reasons discussed further in the documentation for
---   <a>KnownNats</a>, this also lets you generate a <tt><a>SymbolList</a>
---   ss</tt>, in order to iterate over the type-level list of
---   <a>Symbol</a>s and take advantage of their <a>KnownSymbol</a>
---   instances.
---   
---   <b>Deprecated:</b> Use 'SingI from <i>singletons</i> instead.
-class KnownSymbols (ss :: [Symbol])
-
--- | <b>Deprecated:</b> Use <tt>fromSing</tt> from <i>singletons</i>
---   instead.
-symbolsVal :: KnownSymbols ss => p ss -> [String]
-
--- | <b>Deprecated:</b> Use 'sing from <i>singletons</i> instead.
-symbolsList :: KnownSymbols ss => SymbolList ss
-
--- | Represents unknown type-level lists of <a>Symbol</a>s. It's a
---   <a>SymbolList</a>, but you don't know what the list contains at
---   compile-time.
---   
---   <b>Deprecated:</b> Use <tt>SomeSing</tt> from <i>singletons</i>
---   instead.
-data SomeSymbols :: *
-[SomeSymbols] :: KnownSymbols ss => !(SymbolList ss) -> SomeSymbols
-
--- | Singleton-esque type for "traversing" over type-level lists of
---   <a>Symbol</a>s. Essentially contains a (value-level) list of
---   <tt><a>Proxy</a> n</tt>s, but each <tt>n</tt> has a <a>KnownSymbol</a>
---   instance for you to use. At runtime (after type erasure), is more or
---   less equivalent to a <tt>[<a>String</a>]</tt>.
---   
---   Typically generated using <a>symbolsList</a>.
---   
---   <b>Deprecated:</b> Use <tt>Sing</tt> from <i>singletons</i> instead.
-data SymbolList :: [Symbol] -> *
-[ØSL] :: SymbolList '[]
-[:<$] :: (KnownSymbol s, KnownSymbols ss) => !(Proxy s) -> !(SymbolList ss) -> SymbolList (s : ss)
-
--- | List equivalent of <a>someNatVal</a>. Convert a list of integers into
---   an unknown type-level list of naturals. Will return <a>Nothing</a> if
---   any of the given <a>Integer</a>s is negative.
---   
---   <b>Deprecated:</b> Use <tt>toSing</tt> from <i>singletons</i> instead.
-someSymbolsVal :: [String] -> SomeSymbols
-
--- | List equivalent of <a>reifyNat</a>. Given a list of integers, takes a
---   function in an "environment" with a <tt><a>SymbolList</a> ss</tt>
---   corresponding to the given list, where every <tt>s</tt> in <tt>ss</tt>
---   has a <a>KnownSymbol</a> instance.
---   
---   Essentially a continuation-style version of <a>SomeSymbols</a>.
---   
---   <b>Deprecated:</b> Use <tt>withSomeSing</tt> from <i>singletons</i>
---   instead.
-reifySymbols :: [String] -> (forall ss. KnownSymbols ss => SymbolList ss -> r) -> r
-
--- | Get evidence that the two <a>KnownSymbols</a> lists are actually the
---   "same" list of <tt>Symboles</tt>s (that they were instantiated with
---   the same strings).
---   
---   Essentialy runs <a>sameSymbol</a> over the lists:
---   
---   <pre>
---   case <a>sameSymbols</a> ns ms of
---     Just <a>Refl</a> -&gt; -- in this branch, GHC recognizes that the
---                    -- two [<a>Symbol</a>]s are the same
---     Nothing   -&gt; -- in this branch, they aren't
---   </pre>
---   
---   <b>Deprecated:</b> Use <tt>%~</tt> from <i>singletons</i> instead.
-sameSymbols :: SymbolList ns -> SymbolList ms -> Maybe (ns :~: ms)
-
--- | The "eliminator" for <a>SymbolList</a>. You can think of this as a
---   dependently typed analogy for a fold.
---   
---   <i>Since 0.2.1.0</i>
-elimSymbolList :: forall p ss. () => p '[] -> (forall t ts. (KnownSymbol t, KnownSymbols ts) => Proxy t -> p ts -> p (t : ts)) -> SymbolList ss -> p ss
-
--- | Utility function for traversing over all of the <tt><a>Proxy</a>
---   s</tt>s in a <a>SymbolList</a>, each with the corresponding
---   <a>KnownSymbol</a> instance available. Gives the the ability to
---   "change" the represented natural number to a new one, in a
---   <a>SomeSymbol</a>.
---   
---   Can be considered a form of a <tt>Traversal' <a>SomeSymbols</a>
---   <a>SomeSymbol</a></tt>.
-traverseSymbolList :: forall f ss. Applicative f => (forall s. KnownSymbol s => Proxy s -> f SomeSymbol) -> SymbolList ss -> f SomeSymbols
-
--- | Like <a>traverseSymbolList</a>, but literally actually a
---   <tt>Traversal' <a>SomeSymbols</a> <a>SomeSymbol</a></tt>, avoiding the
---   Rank-2 types, so is usable with lens-library machinery.
-traverseSymbolList' :: forall f. Applicative f => (SomeSymbol -> f SomeSymbol) -> SomeSymbols -> f SomeSymbols
-
--- | Utility function for traversing over all of the <tt><a>Proxy</a>
---   s</tt>s in a <a>SymbolList</a>, each with the corresponding
---   <a>KnownSymbol</a> instance available. Results are ignored.
-traverseSymbolList_ :: forall f ss. Applicative f => (forall s a. KnownSymbol s => Proxy s -> f a) -> SymbolList ss -> f ()
-
--- | Utility function for "mapping" over each of the <a>Symbol</a>s in the
---   <a>SymbolList</a>.
-mapSymbolList :: (forall s. KnownSymbol s => Proxy s -> SomeSymbol) -> SymbolList ss -> SomeSymbols
-
--- | Like <a>mapSymbolList</a>, but avoids the Rank-2 types, so can be used
---   with <a>.</a> (function composition) and in other situations where
---   <a>mapSymbolList</a> would cause problems.
-mapSymbolList' :: (SomeSymbol -> SomeSymbol) -> SomeSymbols -> SomeSymbols
-instance GHC.Show.Show (GHC.TypeLits.List.NatList ns)
-instance GHC.Show.Show (GHC.TypeLits.List.SymbolList ns)
-instance GHC.TypeLits.List.KnownSymbols '[]
-instance (GHC.TypeLits.KnownSymbol s, GHC.TypeLits.List.KnownSymbols ss) => GHC.TypeLits.List.KnownSymbols (s : ss)
-instance GHC.TypeLits.List.KnownNats '[]
-instance (GHC.TypeNats.KnownNat n, GHC.TypeLits.List.KnownNats ns) => GHC.TypeLits.List.KnownNats (n : ns)
-
-
--- | <b>Deprecated: Use the <i>singletons</i> package instead</b>
---   
---   This module provides witnesses for instances that result from the
---   various arithmetic operations on GHC TypeLits <a>Nat</a> types. In
+--   Its main functionality is for first-class manipulation of
+--   <a>KnownNat</a> and <a>KnownSymbol</a> constraints. For example, in
 --   general, if you have <tt><a>KnownNat</a> n</tt>, GHC can't infer
---   <tt><a>KnownNat</a> (n + 1)</tt>; and if you have <tt><a>KnownNat</a>
---   m</tt>, as well, GHC can't infer <tt><a>KnownNat</a> (n + m)</tt>.
+--   <tt><a>KnownNat</a> (n + 1)</tt>. And, if you have both
+--   <tt><a>KnownNat</a> n</tt> and <tt><a>KnownNat</a> m</tt>, GHC can't
+--   infer <tt>'KnownNat (n + m)</tt>.
 --   
---   This can be extremely annoying when dealing with libraries and
---   applications where one regularly adds and subtracts type-level nats
---   and expects <a>KnownNat</a> instances to follow. For example, vector
---   concatenation of length-encoded vector types can be:
+--   This can be annoying when dealing with libraries and applications
+--   where one regularly adds and subtracts type-level nats and expects
+--   <a>KnownNat</a> instances to follow. For example, vector concatenation
+--   of length-encoded vector types can be:
 --   
 --   <pre>
 --   concat :: (<a>KnownNat</a> n, <a>KnownNat</a> m) =&gt; Vector n a -&gt; Vector m a -&gt; Vector (n + m) a
 --   </pre>
 --   
 --   But, now <tt>n + m</tt> does not have a <a>KnownNat</a>
---   instance...which makes operations like this extremely less useful!
+--   instance...which makes operations like this much less useful.
 --   
---   At the highest level, this module can be used with <a>withNatOp</a>:
+--   Usually, the easiest way to get around this is to use a typechecker
+--   plugin, like
+--   <a>https://hackage.haskell.org/package/ghc-typelits-knownnat</a>.
+--   However, we can do this without the help of a typechecker plugin using
+--   first-class values, at the cost of some increased verbosity.
 --   
---   <pre>
---   getDoubled :: forall n. <a>KnownNat</a> n =&gt; <a>Proxy</a> n -&gt; <a>Integer</a>
---   getDoubled p = <a>withNatOp</a> (<a>%*</a>) p (<a>Proxy</a> :: <a>Proxy</a> 2) $
---       natVal (<a>Proxy</a> :: <a>Proxy</a> (n * 2))
---   </pre>
+--   We introduce <tt><a>SNat</a> n</tt>, which is a term-level witness of
+--   knownnat-ness that can be manipulated as a first-class value.
 --   
---   With the final argument of <a>withNatOp</a>, you can provide a result
---   computed in an environment where <tt>n * 2</tt> is indeed an instance
---   of <a>KnownNat</a>.
---   
---   For more complex usage, you can directly manipulate witnesses and then
---   use them via pattern matching:
+--   If we have <tt><a>KnownNat</a> n</tt>, we can construct an
+--   <tt><a>SNat</a> n</tt>:
 --   
 --   <pre>
---   let pn = <a>natDict</a> (<a>Proxy</a> :: <a>Proxy</a> n)
---       p1 = <a>natDict</a> (<a>Proxy</a> :: <a>Proxy</a> 1)
---       p2 = <a>natDict</a> (<a>Proxy</a> :: <a>Proxy</a> 2)
---   in  case pn <a>%*</a> p2 <a>%+</a> p1 of
---         <a>Dict</a> -&gt; <a>natVal</a> (<a>Proxy</a> :: <a>Proxy</a> (n * 2 + 1))
+--   <a>SNat</a> :: KnownNat n -&gt; SNat n
 --   </pre>
 --   
---   In the branch of the case statement, <tt>n * 2 + 1</tt> indeed has a
---   <a>KnownNat</a> instance.
+--   Furthermore, if we have an <tt><a>SNat</a> n</tt>, we can <i>pattern
+--   match</i> on the <a>SNat</a> constructor to get a <tt><a>KnownNat</a>
+--   n</tt> constraint:
 --   
---   Note that the operators have appropriate fixities to mimic value-level
---   arithmetic operations.
+--   <pre>
+--   myFunc :: SNat n -&gt; Bool
+--   myFunc SNat = ...  -- in this body, we have `KnownNat n`
+--   </pre>
 --   
---   <b>WARNING</b>: <a>%-</a> and <a>entailSub</a> are is implemented in a
---   way such that <i>negative</i> <a>KnownNat</a>s are produced without
---   any errors. The production of witnesses and entailments will hold, but
---   be aware that any functions that rely on <a>KnownNat</a> instances to
---   be non-negative can potentially break.
+--   So if we have <tt><a>KnownNat</a> n</tt> and <tt><a>KnownNat</a>
+--   m</tt>, we can get <tt><a>KnownNat</a> (n + m)</tt> by using
+--   <a>%+</a>, which adds together <a>SNat</a>s:
+--   
+--   <pre>
+--   case (SNat :: SNat n) %+ (SNat :: SNat m) of
+--     SNat -&gt; -- in this branch, we have `KnownNat (n + m)`
+--   </pre>
+--   
+--   Note that this module converts between <a>SNat</a> and <a>Natural</a>,
+--   and not <a>SNat</a> and <a>Integer</a>, in <a>GHC.TypeNats</a>-style.
+--   
+--   Of course, all of this functionality is provided by the
+--   <i>singletons</i> library, in <a>Data.Singletons.TypeLits</a>. This
+--   module can be useful if you want a lightweight alternative without the
+--   full might of <i>singletons</i>. The main benefit of the
+--   <i>singletons</i> library is providing a unified interface for
+--   singletons of <i>all</i> different kinds/types, and not just
+--   <a>Natural</a> and <a>String</a>.
 module GHC.TypeLits.Witnesses
 
--- | A high-level the interface of this module. Give it one of the
---   witness-generating operators on <a>KnownNat</a>s in this module
---   (<a>%+</a>, <a>%-</a>, <a>%*</a>, or <a>%^</a>), two <a>Proxy</a>s
---   containing the <a>KnownNat</a>s to be modified, and receive an
---   environment where the result of the operation (applied to the
---   <a>KnownNat</a>s) has a <a>KnownNat</a> instance.
+-- | An <tt><a>SNat</a> n</tt> is a witness for <tt><a>KnownNat</a> n</tt>.
 --   
---   For example, with
+--   This means that if you pattern match on the <a>SNat</a> constructor,
+--   in that branch you will have a <tt><a>KnownNat</a> n</tt> constraint.
 --   
 --   <pre>
---   <a>withNatOp</a> (<a>%+</a>) (<a>Proxy</a> :: <a>Proxy</a> n) (<a>Proxy</a> :: <a>Proxy</a> 1) r
+--   myFunc :: SNat n -&gt; Bool
+--   myFunc SNat = ...  -- in this body, we have `KnownNat n`
 --   </pre>
 --   
---   in <tt>r</tt>, <tt>n + 1</tt> has a <a>KnownNat</a> instance:
---   
---   <pre>
---   <a>withNatOp</a> (<a>%+</a>) (<a>Proxy</a> :: <a>Proxy</a> n) (<a>Proxy</a> :: <a>Proxy</a> 1) $
---       <a>natVal</a> (<a>Proxy</a> :: <a>Proxy</a> (n + 1))
---   -- =&gt; will return the <a>Integer</a> correpsonding to n + 1
---   </pre>
---   
---   Normally, if <tt>n</tt> is a <a>KnownNat</a> instance, it is not in
---   general inferrable that <tt>n + 1</tt> also has a <a>KnownNat</a>
---   instance. This combinator makes it so.
---   
---   For multiple operations on values, this can be chained:
---   
---   <pre>
---   <a>withNatOp</a> (<a>%*</a>) (<a>Proxy</a> :: <a>Proxy</a> n) (<a>Proxy</a> :: <a>Proxy</a> 2) $
---     <a>withNatOp</a> (<a>%+</a>) (<a>Proxy</a> :: <a>Proxy</a> (n*2)) (<a>Proxy</a> :: <a>Proxy</a> 1) $
---       <a>natVal</a> (<a>Proxy</a> :: <a>Proxy</a> (n * 2 + 1))
---   </pre>
---   
---   But, at this point, it's easier and simpler to just directly use the
---   operators and pattern match:
---   
---   <pre>
---   let pn = <a>natDict</a> (<a>Proxy</a> :: <a>Proxy</a> n)
---       p1 = <a>natDict</a> (<a>Proxy</a> :: <a>Proxy</a> 1)
---       p2 = <a>natDict</a> (<a>Proxy</a> :: <a>Proxy</a> 2)
---   in  case pn <a>%*</a> p2 <a>%+</a> p1 of
---         <a>Dict</a> -&gt; <a>natVal</a> (<a>Proxy</a> :: <a>Proxy</a> (n * 2 + 1))
---   </pre>
---   
---   (Note that associativity and fixity for the witness-generating
---   operators are set to match that of normal addition and multiplication,
---   etc.)
---   
---   With <i>singletons</i>, <tt><a>withNatOp</a> f x y</tt> is
---   <tt><tt>withKnownNat</tt> (f x y)</tt>.
---   
---   So, instead of
---   
---   <pre>
---   <a>withNatOp</a> (<a>%+</a>) (<a>Proxy</a> :: <a>Proxy</a> n) (<a>Proxy</a> :: <a>Proxy</a> 1) $
---       <a>natVal</a> (<a>Proxy</a> :: <a>Proxy</a> (n + 1))
---   </pre>
---   
---   You can just use
---   
---   <pre>
---   <tt>withKnownNat</tt> (<tt>SNat</tt> <tt>n) ('SNat </tt>1) $
---       <a>natVal</a> (<a>Proxy</a> :: <a>Proxy</a> (n + 1))
---   </pre>
---   
---   <a>natVal</a> can of course be replaced with <tt>fromSing</tt>.
-withNatOp :: (KnownNat n, KnownNat m) => (Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat q)) -> p n -> p m -> (KnownNat q => r) -> r
+--   This is essentially a singleton for <a>Nat</a>, and stands in for the
+--   <i>singletons</i> <a>SNat</a> and <a>Sing</a> types.
+data SNat n
+SNat :: SNat n
 
--- | Create a <a>Dict</a> witness for <tt><a>KnownNat</a> n</tt>.
---   
---   Not necessary with <i>singletons</i>, as <tt><tt>SNat</tt> n</tt>
---   stands in for both <tt><a>Proxy</a> n</tt> and <tt><a>Dict</a>
---   (<a>KnownNat</a> n)</tt>.
-natDict :: KnownNat n => p n -> Dict (KnownNat n)
+-- | This type represents unknown type-level natural numbers.
+data SomeNat
 
--- | Get the <a>Integer</a> from the <a>KnownNat</a> instance witnessed by
---   the <a>Dict</a>.
+-- | A useful pattern synonym for matching on a <a>SomeNat</a> as if it
+--   contained an <tt><a>SNat</a> n</tt>, and not a <tt><a>Proxy</a> n</tt>
+--   as it exists in <a>GHC.TypeLits</a>.
 --   
---   With <i>singletons</i>, this is <tt>fromSing</tt>, which takes an
---   <tt><tt>SNat</tt> n</tt> and returns an <a>Integer</a>.
-dictNatVal :: forall n. Dict (KnownNat n) -> Integer
+--   A layer of compatibility letting us use the original <a>SomeNat</a>
+--   type in a way that works well with <a>SNat</a>.
+--   
+--   This stands in for the <i>singletons</i> <a>SomeSing</a> constructor.
+pattern SomeNat_ :: SNat n -> SomeNat
 
--- | Given witnesses for <tt><a>KnownNat</a> n</tt> and <tt><a>KnownNat</a>
---   m</tt>, generates a witness for <tt><a>KnownNat</a> (n + m)</tt>.
+-- | Type representing arbitrary-precision non-negative integers.
 --   
---   Follows proper association and fixity for usage with other similar
---   operators.
+--   <pre>
+--   &gt;&gt;&gt; 2^100 :: Natural
+--   1267650600228229401496703205376
+--   </pre>
 --   
---   With <i>singletons</i>, this is <tt>%:+</tt> from
+--   Operations whose result would be negative <tt><tt>throw</tt>
+--   (<tt>Underflow</tt> :: <tt>ArithException</tt>)</tt>,
+--   
+--   <pre>
+--   &gt;&gt;&gt; -1 :: Natural
+--   *** Exception: arithmetic underflow
+--   </pre>
+data Natural
+
+-- | A useful pattern synonym for matching on a <a>Natural</a> as if it
+--   "were" a <a>SNat</a>:
+--   
+--   <pre>
+--   myFunc :: Natural -&gt; Bool
+--   myFunc (FromSNat x) = ...  -- x is `SNat n`, with <tt>n</tt> coming from the input
+--   </pre>
+--   
+--   It can be used as a function, as well, to convert an <tt><a>SNat</a>
+--   n</tt> back into the <a>Natural</a> that it represents.
+--   
+--   This stands in for the <i>singletons</i> <a>FromSing</a> pattern
+--   synonym.
+pattern FromSNat :: SNat n -> Natural
+
+-- | Convert ("reflect") an <a>SNat</a> back into the <a>Natural</a> it
+--   represents.
+--   
+--   This stands in the <i>singletons</i> <a>fromSing</a> function.
+fromSNat :: SNat n -> Natural
+
+-- | Given an <tt><a>SNat</a> n</tt> and a value that would require a
+--   <tt><a>KnownNat</a> n</tt> instance, create that value.
+--   
+--   This stands in for the function of the same name from
+--   <a>Data.Singletons.TypeLits</a>.
+withKnownNat :: SNat n -> (KnownNat n => r) -> r
+
+-- | Promote ("reify") a <a>Natural</a> to an <tt><a>SNat</a> n</tt>, by
+--   providing a continuation that would handle it in a way that is
+--   polymorphic over all possible <tt>n</tt>.
+--   
+--   This stands in the <i>singletons</i> <a>withSomeSing</a> function.
+withSomeNat :: Natural -> (forall n. SNat n -> r) -> r
+
+-- | Promote ("reify") a <a>Natural</a> to an <tt><a>SNat</a> n</tt>
+--   existentially hidden inside a <a>SomeNat</a>. To use it, pattern match
+--   using <a>SomeNat_</a>.
+--   
+--   This stands in the <i>singletons</i> <a>toSomeSing</a> function.
+toSomeNat :: Natural -> SomeNat
+
+-- | Addition of <a>SNat</a>s.
+--   
+--   This also will provide the correct <a>KnownNat</a> instance for
+--   <tt><a>SNat</a> (n + m)</tt>, so can be used as a way to "add"
+--   <a>KnownNat</a> instances.
+--   
+--   This stands in for the function with the same name from
 --   <a>Data.Singletons.Prelude.Num</a>.
-(%+) :: forall n m. Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat (n + m))
-infixl 6 %+
+(%+) :: SNat n -> SNat m -> SNat (n + m)
 
--- | Given witnesses for <tt><a>KnownNat</a> n</tt> and <tt><a>KnownNat</a>
---   m</tt>, generates a witness for <tt><a>KnownNat</a> (n - m)</tt>.
+-- | Subtraction of <a>SNat</a>s. Note that this is unsafe, as will trigger
+--   a run-time underflow if <tt>m</tt> is bigger than <tt>n</tt> even
+--   though it will always succeed at compiletime.
 --   
---   Note that this is implemented in a way such that <i>negative</i>
---   <a>KnownNat</a>s are produced without any errors.
+--   This also will provide the correct <a>KnownNat</a> instance for
+--   <tt><a>SNat</a> (n - m)</tt>, so can be used as a way to "subtract"
+--   <a>KnownNat</a> instances.
 --   
---   Follows proper association and fixity for usage with other similar
---   operators.
---   
---   With <i>singletons</i>, this is <tt>%:-</tt> from
+--   This stands in for the function with the same name from
 --   <a>Data.Singletons.Prelude.Num</a>.
-(%-) :: forall n m. Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat (n - m))
-infixl 6 %-
+(%-) :: SNat n -> SNat m -> SNat (n - m)
 
--- | Given witnesses for <tt><a>KnownNat</a> n</tt> and <tt><a>KnownNat</a>
---   m</tt>, generates a witness for <tt><a>KnownNat</a> (n * m)</tt>.
+-- | A safe version of <a>%-</a>: it will return <a>Left</a> if <tt>n</tt>
+--   is less than <tt>m</tt> (with a witness that it is), or else return
+--   the subtracted <a>SNat</a> in <a>Right</a> in a way that is guarunteed
+--   to not have runtime underflow.
+minusSNat :: SNat n -> SNat m -> Either (CmpNat n m :~:  'LT) (SNat (n - m))
+
+-- | A version of <a>minusSNat</a> that just returns a <a>Maybe</a>.
+minusSNat_ :: SNat n -> SNat m -> Maybe (SNat (n - m))
+
+-- | Addition of <a>SNat</a>s.
 --   
---   Follows proper association and fixity for usage with other similar
---   operators.
+--   This also will provide the correct <a>KnownNat</a> instance for
+--   <tt><a>SNat</a> (n * m)</tt>, so can be used as a way to "multiply"
+--   <a>KnownNat</a> instances.
 --   
---   With <i>singletons</i>, this is <tt>%:*</tt> from
+--   This stands in for the function with the same name from
 --   <a>Data.Singletons.Prelude.Num</a>.
-(%*) :: forall n m. Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat (n * m))
-infixl 7 %*
+(%*) :: SNat n -> SNat m -> SNat (n - m)
 
--- | Given witnesses for <tt><a>KnownNat</a> n</tt> and <tt><a>KnownNat</a>
---   m</tt>, generates a witness for <tt><a>KnownNat</a> (n ^ m)</tt>.
+-- | Exponentiation of <a>SNat</a>s.
 --   
---   Follows proper association and fixity for usage with other similar
---   operators.
-(%^) :: forall n m. Dict (KnownNat n) -> Dict (KnownNat m) -> Dict (KnownNat (n ^ m))
-infixr 8 %^
-
--- | An entailment for addition of <a>KnownNat</a> instances.
-entailAdd :: forall n m. (KnownNat n, KnownNat m) :- KnownNat (n + m)
-
--- | An entailment for subtraction of <a>KnownNat</a> instances.
+--   This also will provide the correct <a>KnownNat</a> instance for
+--   <tt><a>SNat</a> (n ^ m)</tt>, so can be used as a way to
+--   "exponentiate" <a>KnownNat</a> instances.
 --   
---   Note that this is implemented in a way such that <i>negative</i>
---   <a>KnownNat</a>s are produced without any errors.
-entailSub :: forall n m. (KnownNat n, KnownNat m) :- KnownNat (n - m)
+--   This stands in for the function with the same name from
+--   <a>Data.Singletons.TypeLits</a>.
+(%^) :: SNat n -> SNat m -> SNat (n ^ m)
 
--- | An entailment for multiplication of <a>KnownNat</a> instances.
-entailMul :: forall n m. (KnownNat n, KnownNat m) :- KnownNat (n * m)
+-- | Compare <tt>n</tt> and <tt>m</tt>, categorizing them into one of the
+--   constructors of <a>:&lt;=?</a>.
+(%<=?) :: SNat n -> SNat m -> n :<=? m
 
--- | An entailment for exponentiation of <a>KnownNat</a> instances.
-entailExp :: forall n m. (KnownNat n, KnownNat m) :- KnownNat (n ^ m)
+-- | Compare <tt>n</tt> and <tt>m</tt>, categorizing them into one of the
+--   constructors of <a>SCmpNat</a>.
+sCmpNat :: SNat n -> SNat m -> SCmpNat n m
+
+-- | Lift a unary operation to act on an <tt><a>SNat</a> n</tt> that
+--   returns an <tt><a>SNat</a> m</tt>. The function given must properly
+--   describe the relationship between <tt>n</tt> and <tt>m</tt>.
+--   
+--   For example:
+--   
+--   <pre>
+--   double :: SNat n -&gt; SNat (n * 2)
+--   double = unsafeLiftNatOp1 (*2)
+--   </pre>
+--   
+--   The correctness of the relationship is not checked, so be aware that
+--   this can cause programs to break.
+unsafeLiftNatOp1 :: (Natural -> Natural) -> SNat n -> SNat m
+
+-- | Lift a binary operation to act on an <tt><a>SNat</a> n</tt> and
+--   <tt><a>SNat</a> m</tt> that returns an <tt><a>SNat</a> o</tt>. The
+--   function given must properly describe the relationship between
+--   <tt>n</tt>, <tt>m</tt>, and <tt>o</tt>.
+--   
+--   For example:
+--   
+--   <pre>
+--   multiply :: SNat n -&gt; SNat m -&gt; SNat (n * m)
+--   multiply = unsafeLiftNatOp2 (*)
+--   </pre>
+--   
+--   The correctness of the relationship is not checked, so be aware that
+--   this can cause programs to break.
+unsafeLiftNatOp2 :: (Natural -> Natural -> Natural) -> SNat n -> SNat m -> SNat o
+
+-- | An <tt><a>SSymbol</a> n</tt> is a witness for <tt><a>KnownSymbol</a>
+--   n</tt>.
+--   
+--   This means that if you pattern match on the <a>SSymbol</a>
+--   constructor, in that branch you will have a <tt><a>KnownSymbol</a>
+--   n</tt> constraint.
+--   
+--   <pre>
+--   myFunc :: SSymbol n -&gt; Bool
+--   myFunc SSymbol = ...  -- in this body, we have `KnownSymbol n`
+--   </pre>
+--   
+--   This is essentially a singleton for <a>Symbol</a>, and stands in for
+--   the <i>singletons</i> <a>SSymbol</a> and <a>Sing</a> types.
+data SSymbol n
+SSymbol :: SSymbol n
+
+-- | This type represents unknown type-level symbols.
+data SomeSymbol
+
+-- | A useful pattern synonym for matching on a <a>SomeSymbol</a> as if it
+--   contained an <tt><a>SSymbol</a> n</tt>, and not a <tt><a>Proxy</a>
+--   n</tt> as it exists in <a>GHC.TypeLits</a>.
+--   
+--   A layer of compatibility letting us use the original <a>SomeSymbol</a>
+--   type in a way that works well with <a>SSymbol</a>.
+--   
+--   This stands in for the <i>singletons</i> <a>SomeSing</a> constructor.
+pattern SomeSymbol_ :: SSymbol n -> SomeSymbol
+
+-- | A useful pattern synonym for matching on a <a>String</a> as if it
+--   "were" a <a>SSymbol</a>:
+--   
+--   <pre>
+--   myFunc :: String -&gt; Bool
+--   myFunc (FromSSymbol x) = ...  -- x is `SSymbol n`, with <tt>n</tt> coming from the input
+--   </pre>
+--   
+--   It can be used as a function, as well, to convert an
+--   <tt><a>SSymbol</a> n</tt> back into the <a>String</a> that it
+--   represents.
+--   
+--   This stands in for the <i>singletons</i> <a>FromSing</a> pattern
+--   synonym, except it matches on a <a>String</a> instead of a
+--   <a>Text</a>.
+pattern FromSSymbol :: SSymbol n -> String
+
+-- | Convert ("reflect") an <a>SSymbol</a> back into the <a>String</a> it
+--   represents.
+--   
+--   This stands in the <i>singletons</i> <a>fromSing</a> function, except
+--   it returns a <a>String</a> instead of <a>Text</a>.
+fromSSymbol :: SSymbol n -> String
+
+-- | Given an <tt><a>SSymbol</a> n</tt> and a value that would require a
+--   <tt><a>KnownSymbol</a> n</tt> instance, create that value.
+--   
+--   This stands in for the function of the same name from
+--   <a>Data.Singletons.TypeLits</a>.
+withKnownSymbol :: SSymbol n -> (KnownSymbol n => r) -> r
+
+-- | Promote ("reify") a <a>String</a> to an <tt><a>SSymbol</a> n</tt>, by
+--   providing a continuation that would handle it in a way that is
+--   polymorphic over all possible <tt>n</tt>.
+--   
+--   This stands in the <i>singletons</i> <a>withSomeSing</a> function,
+--   except it takes a <a>String</a> instead of <a>Text</a>.
+withSomeSymbol :: String -> (forall n. SSymbol n -> r) -> r
+
+-- | Promote ("reify") a <a>String</a> to an <tt><a>SSymbol</a> n</tt>
+--   existentially hidden inside a <a>SomeNat</a>. To use it, pattern match
+--   using <a>SomeSymbol_</a>.
+--   
+--   This stands in the <i>singletons</i> <a>toSomeSing</a> function,
+--   except it takes a <a>String</a> instead of <a>Text</a>.
+toSomeSymbol :: String -> SomeSymbol
+instance GHC.Classes.Eq (GHC.TypeLits.Witnesses.SNat n)
+instance GHC.Classes.Ord (GHC.TypeLits.Witnesses.SNat n)
+instance GHC.Classes.Eq (GHC.TypeLits.Witnesses.SSymbol n)
+instance GHC.Classes.Ord (GHC.TypeLits.Witnesses.SSymbol n)
+instance GHC.Show.Show (GHC.TypeLits.Witnesses.SSymbol n)
+instance Data.GADT.Show.GShow GHC.TypeLits.Witnesses.SSymbol
+instance Data.Type.Equality.TestEquality GHC.TypeLits.Witnesses.SSymbol
+instance Data.GADT.Compare.GEq GHC.TypeLits.Witnesses.SSymbol
+instance Data.GADT.Compare.GCompare GHC.TypeLits.Witnesses.SSymbol
+instance GHC.Show.Show (GHC.TypeLits.Witnesses.SNat n)
+instance Data.GADT.Show.GShow GHC.TypeLits.Witnesses.SNat
+instance Data.Type.Equality.TestEquality GHC.TypeLits.Witnesses.SNat
+instance Data.GADT.Compare.GEq GHC.TypeLits.Witnesses.SNat
+instance Data.GADT.Compare.GCompare GHC.TypeLits.Witnesses.SNat
