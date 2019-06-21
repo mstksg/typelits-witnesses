@@ -9,8 +9,6 @@
 
 -- |
 -- Module      : GHC.TypeLits.Compare
--- Description : Tools and singletons for proving and refining inequalities
---               and bounds on GHC TypeLits types using '<=' and '<=?'
 -- Copyright   : (c) Justin Le 2016
 -- License     : MIT
 -- Maintainer  : justin@jle.im
@@ -26,7 +24,7 @@
 -- @'KnownNat' n@ is available:
 --
 -- @
--- foo :: (KnownNat n, 1 '<=' n) => 'Proxy' n -> Int
+-- foo :: (KnownNat n, 1 '<=' n) => 'Data.Proxy.Proxy' n -> Int
 --
 -- bar :: KnownNat n => Proxy n -> Int
 -- bar n = case (Proxy :: Proxy 1) '%<=?' n of
@@ -35,7 +33,7 @@
 -- @
 --
 -- @foo@ requires that @1 <= n@, but @bar@ has to handle all cases of @n@.
--- @%<=?@ lets you compare the 'KnownNat's in two 'Proxy's and returns
+-- @%<=?@ lets you compare the 'KnownNat's in two 'Data.Proxy.Proxy's and returns
 -- a @:<=?@, which has two constructors, 'LE' and 'NLE'.
 --
 -- If you pattern match on the result, in the 'LE' branch, the constraint
@@ -73,7 +71,9 @@
 -- with '<=?' (useful for when you have to work with libraries that mix the
 -- two methods) or 'cmpNatEq' and 'eqCmpNat' to get to/from witnesses for
 -- equality of the two 'Nat's.
-
+--
+-- This module is useful for helping bridge between libraries that use
+-- different 'Nat'-based comparison systems in their type constraints.
 module GHC.TypeLits.Compare
   ( -- * '<=' and '<=?'
     (:<=?)(..)
@@ -89,8 +89,8 @@ module GHC.TypeLits.Compare
   , cmpNatEq
   , eqCmpNat
   , reflCmpNat
-    -- ** Interfacing with '<=?'
   , cmpNatLE
+  , cmpNatGOrdering
   )
   where
 
@@ -98,7 +98,11 @@ import           Data.Kind
 import           Data.Type.Equality
 import           GHC.TypeLits
 import           Unsafe.Coerce
+import           Data.GADT.Compare
 
+-- | Simplified version of '%<=?': check if @m@ is less than or equal to to
+-- @n@.  If it is, match on @'Just' 'Refl'@ to get GHC to believe it,
+-- within the body of the pattern match.
 isLE
     :: (KnownNat m, KnownNat n)
     => p m
@@ -108,6 +112,9 @@ isLE m n = case m %<=? n of
              LE  Refl -> Just Refl
              NLE _ _  -> Nothing
 
+-- | Simplified version of '%<=?': check if @m@ is not less than or equal
+-- to to @n@.  If it is, match on @'Just' 'Refl'@ to get GHC to believe it,
+-- within the body of the pattern match.
 isNLE
     :: (KnownNat m, KnownNat n)
     => p m
@@ -117,10 +124,13 @@ isNLE m n = case m %<=? n of
     NLE Refl Refl -> Just Refl
     LE  _         -> Nothing
 
+-- | Two possible ordered relationships between two natural numbers.
 data (:<=?) :: Nat -> Nat -> Type where
     LE  :: ((m <=? n) :~: 'True)  -> (m :<=? n)
     NLE :: ((m <=? n) :~: 'False) -> ((n <=? m) :~: 'True) -> (m :<=? n)
 
+-- | Compare @m@ and @n@, classifying their relationship into some
+-- constructor of ':<=?'.
 (%<=?)
      :: (KnownNat m, KnownNat n)
      => p m
@@ -129,11 +139,14 @@ data (:<=?) :: Nat -> Nat -> Type where
 m %<=? n | natVal m <= natVal n = LE  (unsafeCoerce Refl)
          | otherwise            = NLE (unsafeCoerce Refl) (unsafeCoerce Refl)
 
+-- | Three possible ordered relationships between two natural numbers.
 data SCmpNat :: Nat -> Nat -> Type where
     CLT :: (CmpNat m n :~: 'LT) -> SCmpNat m n
     CEQ :: (CmpNat m n :~: 'EQ) -> (m :~: n) -> SCmpNat m n
     CGT :: (CmpNat m n :~: 'GT) -> SCmpNat m n
 
+-- | Compare @m@ and @n@, classifying their relationship into some
+-- constructor of 'SCmpNat'.
 cmpNat
     :: (KnownNat m, KnownNat n)
     => p m
@@ -144,21 +157,36 @@ cmpNat m n = case compare (natVal m) (natVal n) of
                EQ -> CEQ (unsafeCoerce Refl) (unsafeCoerce Refl)
                GT -> CGT (unsafeCoerce Refl)
 
+-- | Flip an inequality.
 flipCmpNat :: SCmpNat m n -> SCmpNat n m
 flipCmpNat = \case CLT Refl      -> CGT (unsafeCoerce Refl)
                    CEQ Refl Refl -> CEQ (unsafeCoerce Refl) Refl
                    CGT Refl      -> CLT (unsafeCoerce Refl)
 
+-- | @'CmpNat' m n@ being 'EQ' implies that @m@ is equal to @n@.
 cmpNatEq :: (CmpNat m n :~: 'EQ) -> (m :~: n)
 cmpNatEq = \case Refl -> unsafeCoerce Refl
 
+-- | A witness of equality implies that @'CmpNat' m n@ is 'Eq'.
 eqCmpNat :: (m :~: n) -> (CmpNat m n :~: 'EQ)
 eqCmpNat = \case Refl -> unsafeCoerce Refl
 
+-- | Inject a witness of equality into an 'SCmpNat' at 'CEQ'.
 reflCmpNat :: (m :~: n) -> SCmpNat m n
 reflCmpNat r = CEQ (eqCmpNat r) r
 
+-- | Convert to ':<=?'
 cmpNatLE :: SCmpNat m n -> (m :<=? n)
 cmpNatLE = \case CLT Refl      -> LE  (unsafeCoerce Refl)
                  CEQ Refl Refl -> LE  (unsafeCoerce Refl)
                  CGT Refl      -> NLE (unsafeCoerce Refl) (unsafeCoerce Refl)
+
+-- | Convert to 'GOrdering'
+--
+-- @since 0.4.0.0
+cmpNatGOrdering :: SCmpNat n m -> GOrdering n m
+cmpNatGOrdering = \case
+    CLT Refl      -> GLT
+    CEQ Refl Refl -> GEQ
+    CGT Refl      -> GGT
+

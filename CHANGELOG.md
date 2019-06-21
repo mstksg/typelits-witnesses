@@ -1,5 +1,25 @@
+Changelog
+=========
+
+Version 0.4.0.0
+---------------
+
+<https://github.com/mstksg/typelits-witnesses/releases/tag/v0.4.0.0>
+
+*June 20, 2019*
+
+*   Complete overhaul of *GHC.TypeLits.Witnesses* to more or less match the
+    interface of singletons.  This changes the role of the module to be a
+    "lightweight" version of the singletons library as it pertains to `Nat` and
+    `Symbol`.
+*   Removal of the *GHC.TypeLits.List* module.  We could perform the same
+    overhaul as *GHC.TypeLits.Witnesses*, but it is complex enough that it
+    would be better to just use *singletons* instead at that point.
+*   Remove all external dependencies, except for *base* and *dependent-sum*.
+*   Break compatibility with GHC < 8.2
+
 Version 0.3.0.3
-===============
+---------------
 
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.3.0.3>
 
@@ -9,7 +29,7 @@ Version 0.3.0.3
 *   Break compatibility with GHC < 8.0
 
 Version 0.3.0.2
-===============
+---------------
 
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.3.0.2>
 
@@ -19,7 +39,7 @@ Version 0.3.0.2
     take different "proxy" types (`p` and `q`).
 
 Version 0.3.0.1
-===============
+---------------
 
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.3.0.1>
 
@@ -27,7 +47,7 @@ Version 0.3.0.1
     haddocks for *GHC.TypeLits.List*.
 
 Version 0.3.0.0
-===============
+---------------
 
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.3.0.0>
 
@@ -40,7 +60,7 @@ Version 0.3.0.0
     because it's just so much more unweidly than using *singletons*.
 
 Version 0.2.3.0
-===============
+---------------
 
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.2.3.0>
 
@@ -48,7 +68,7 @@ Version 0.2.3.0
     inequalities on `KnownNat`s and associated utility functions.
 
 Version 0.2.2.0
-===============
+---------------
 
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.2.2.0>
 
@@ -56,7 +76,7 @@ Version 0.2.2.0
     and `sameSymbols`.
 
 Version 0.2.1.0
-===============
+---------------
 
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.2.1.0>
 
@@ -64,7 +84,7 @@ Version 0.2.1.0
     `NatList` and `SymbolList`.
 
 Version 0.2.0.0
-===============
+---------------
 
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.2.0.0>
 
@@ -77,7 +97,7 @@ Version 0.2.0.0
     the *reflection* package is very strong and worth preserving, I think.
 
 Version 0.1.2.0
-===============
+---------------
 
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.1.2.0>
 
@@ -91,7 +111,7 @@ Version 0.1.2.0
     are both the same.
 
 Version 0.1.1.0
-===============
+---------------
 
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.1.1.0>
 
@@ -99,7 +119,7 @@ Version 0.1.1.0
     `SomeSymbols`.  It really doesn't make any sense for them to be lazy.
 
 Version 0.1.0.1
-===============
+---------------
 
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.1.0.1>
 
@@ -107,7 +127,7 @@ Version 0.1.0.1
     Hackage.
 
 Version 0.1.0.0
-===============
+---------------
 
 <https://github.com/mstksg/typelits-witnesses/releases/tag/v0.1.0.0>
 
