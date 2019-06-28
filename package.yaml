@@ -24,7 +24,7 @@ license: MIT
 homepage: https://github.com/mstksg/typelits-witnesses
 
 git: git://github.com/mstksg/typelits-witnesses.git
-tested-with: GHC>=8.2 && <8.8
+tested-with: GHC>=8.2
 
 extra-source-files:
 - README.md
