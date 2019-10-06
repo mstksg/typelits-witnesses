@@ -91,6 +91,9 @@ module GHC.TypeLits.Compare
   , reflCmpNat
   , cmpNatLE
   , cmpNatGOrdering
+  -- * Inductive deconstruction
+  , PNat(..)
+  , pNat
   )
   where
 
@@ -190,3 +193,11 @@ cmpNatGOrdering = \case
     CEQ Refl Refl -> GEQ
     CGT Refl      -> GGT
 
+data PNat :: Nat -> Type where
+    PZ :: PNat 0
+    PS :: PNat (n + 1)
+
+pNat :: KnownNat n => p n -> PNat n
+pNat n
+  | natVal n == 0 = unsafeCoerce PZ
+  | otherwise     = unsafeCoerce PS
