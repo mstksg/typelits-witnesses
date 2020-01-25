@@ -7,6 +7,7 @@
 {-# LANGUAGE RankNTypes                #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE StandaloneDeriving        #-}
+{-# LANGUAGE NoStarIsType              #-}
 {-# LANGUAGE TypeInType                #-}
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE ViewPatterns              #-}
