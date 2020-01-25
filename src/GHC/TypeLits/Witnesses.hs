@@ -305,7 +305,7 @@ minusSNat_ x = either (const Nothing) Just . minusSNat x
 --
 -- This stands in for the function with the same name from
 -- "Data.Singletons.Prelude.Num".
-(%*) :: SNat n -> SNat m -> SNat (n - m)
+(%*) :: SNat n -> SNat m -> SNat (n * m)
 (%*) = unsafeLiftNatOp2 (*)
 
 -- | Exponentiation of 'SNat's.
