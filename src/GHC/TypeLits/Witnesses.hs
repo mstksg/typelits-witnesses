@@ -299,7 +299,7 @@ minusSNat (fromSNat->x) (fromSNat->y) = case minusNaturalMaybe x y of
 minusSNat_ :: SNat n -> SNat m -> Maybe (SNat (n - m))
 minusSNat_ x = either (const Nothing) Just . minusSNat x
 
--- | Addition of 'SNat's.
+-- | Multiplication of 'SNat's.
 --
 -- This also will provide the correct 'KnownNat' instance for @'SNat' (n
 -- * m)@, so can be used as a way to "multiply" 'KnownNat' instances.
