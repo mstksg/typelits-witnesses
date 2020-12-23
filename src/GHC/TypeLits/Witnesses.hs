@@ -293,7 +293,7 @@ minusSNat
     -> Either (CmpNat n m :~: 'LT) (SNat (n - m))
 minusSNat (fromSNat->x) (fromSNat->y) = case minusNaturalMaybe x y of
     Nothing -> Left (unsafeCoerce Refl)
-    Just z  -> withSomeNat z unsafeCoerce
+    Just z  -> withSomeNat z (Right . unsafeCoerce)
 
 -- | A version of 'minusSNat' that just returns a 'Maybe'.
 minusSNat_ :: SNat n -> SNat m -> Maybe (SNat (n - m))
