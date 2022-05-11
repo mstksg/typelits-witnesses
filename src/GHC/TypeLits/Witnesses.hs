@@ -327,7 +327,7 @@ x@SNat %<=? y@SNat = x Comp.%<=? y
 -- | Compare @n@ and @m@, categorizing them into one of the constructors of
 -- 'SCmpNat'.
 sCmpNat :: SNat n -> SNat m -> SCmpNat n m
-sCmpNat x@SNat y@SNat = cmpNat x y
+sCmpNat x@SNat y@SNat = GHC.TypeLits.Compare.cmpNat x y
 
 -- | An @'SSymbol' n@ is a witness for @'KnownSymbol' n@.
 --
