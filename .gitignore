@@ -2,6 +2,5 @@
 /.cabal-sandbox
 /dist
 /.stack-work
-/typelits-witnesses.cabal
 /.ghc.environment.*
 /dist-newstyle
