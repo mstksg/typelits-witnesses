@@ -96,7 +96,9 @@ module GHC.TypeLits.Compare
 
 import           Data.Kind
 import           Data.Type.Equality
-import           GHC.TypeLits
+import           GHC.TypeLits ( Nat, KnownNat, CmpNat
+                              , type (<=?)
+                              , natVal )
 import           Unsafe.Coerce
 import           Data.GADT.Compare
 
