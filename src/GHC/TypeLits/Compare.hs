@@ -83,7 +83,7 @@ module GHC.TypeLits.Compare
   , isNLE
     -- * 'CmpNat'
   , SCmpNat(..)
-  , cmpNat
+  , GHC.TypeLits.Compare.cmpNat
     -- ** Manipulating witnesses
   , flipCmpNat
   , cmpNatEq
