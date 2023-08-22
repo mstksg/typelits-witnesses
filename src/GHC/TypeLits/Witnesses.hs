@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                       #-}
 {-# LANGUAGE ConstraintKinds           #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts          #-}
@@ -8,7 +9,11 @@
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE StandaloneDeriving        #-}
 {-# LANGUAGE NoStarIsType              #-}
+#if MIN_VERSION_base(4,18,0)
+{-# LANGUAGE DataKinds                 #-}
+#else
 {-# LANGUAGE TypeInType                #-}
+#endif
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE ViewPatterns              #-}
 
@@ -121,10 +126,18 @@ import           Data.Type.Equality
 import           GHC.Natural
 import           GHC.TypeLits ( KnownSymbol, SomeSymbol(..)
                               , symbolVal, someSymbolVal, sameSymbol )
+#if MIN_VERSION_base(4,16,0)
 import           GHC.TypeLits.Compare hiding ((%<=?))
+#else
+import           GHC.TypeLits.Compare hiding (cmpNat, (%<=?))
+#endif
 import           GHC.TypeNats ( KnownNat, SomeNat(..), CmpNat
                               , type (+), type (-), type (*), type (^)
+#if MIN_VERSION_base(4,16,0)
                               , natVal, someNatVal, sameNat )
+#else
+                              , cmpNat, natVal, someNatVal, sameNat )
+#endif
 import           Unsafe.Coerce
 import qualified GHC.TypeLits.Compare        as Comp
 
@@ -330,7 +343,11 @@ x@SNat %<=? y@SNat = x Comp.%<=? y
 -- | Compare @n@ and @m@, categorizing them into one of the constructors of
 -- 'SCmpNat'.
 sCmpNat :: SNat n -> SNat m -> SCmpNat n m
+#if MIN_VERSION_base(4,16,0)
+sCmpNat x@SNat y@SNat = cmpNat' x y
+#else
 sCmpNat x@SNat y@SNat = cmpNat x y
+#endif
 
 -- | An @'SSymbol' n@ is a witness for @'KnownSymbol' n@.
 --

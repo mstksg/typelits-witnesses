@@ -1,10 +1,14 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+#if MIN_VERSION_base(4,18,0)
+#else
 {-# LANGUAGE TypeInType          #-}
+#endif
 {-# LANGUAGE TypeOperators       #-}
 
 -- |
@@ -83,6 +87,9 @@ module GHC.TypeLits.Compare
   , isNLE
     -- * 'CmpNat'
   , SCmpNat(..)
+#if MIN_VERSION_base(4,16,0)
+  , cmpNat'
+#endif
   , cmpNat
     -- ** Manipulating witnesses
   , flipCmpNat
@@ -98,7 +105,11 @@ import           Data.Kind
 import           Data.Type.Equality
 import           GHC.TypeLits ( Nat, KnownNat, CmpNat
                               , type (<=?)
+#if MIN_VERSION_base(4,16,0)
+                              , cmpNat
+#endif
                               , natVal )
+
 import           Unsafe.Coerce
 import           Data.GADT.Compare
 
@@ -147,6 +158,19 @@ data SCmpNat :: Nat -> Nat -> Type where
     CEQ :: (CmpNat m n :~: 'EQ) -> (m :~: n) -> SCmpNat m n
     CGT :: (CmpNat m n :~: 'GT) -> SCmpNat m n
 
+#if MIN_VERSION_base(4,16,0)
+-- | Compare @m@ and @n@, classifying their relationship into some
+-- constructor of 'SCmpNat'.
+cmpNat'
+    :: (KnownNat m, KnownNat n)
+    => p m
+    -> q n
+    -> SCmpNat m n
+cmpNat' m n = case compare (natVal m) (natVal n) of
+               LT -> CLT (unsafeCoerce Refl)
+               EQ -> CEQ (unsafeCoerce Refl) (unsafeCoerce Refl)
+               GT -> CGT (unsafeCoerce Refl)
+#else
 -- | Compare @m@ and @n@, classifying their relationship into some
 -- constructor of 'SCmpNat'.
 cmpNat
@@ -158,6 +182,7 @@ cmpNat m n = case compare (natVal m) (natVal n) of
                LT -> CLT (unsafeCoerce Refl)
                EQ -> CEQ (unsafeCoerce Refl) (unsafeCoerce Refl)
                GT -> CGT (unsafeCoerce Refl)
+#endif
 
 -- | Flip an inequality.
 flipCmpNat :: SCmpNat m n -> SCmpNat n m
