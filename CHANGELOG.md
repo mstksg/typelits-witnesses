@@ -1,6 +1,18 @@
 Changelog
 =========
 
+Version 0.4.0.1
+---------------
+
+<https://github.com/mstksg/typelits-witnesses/releases/tag/v0.4.0.1>
+
+*November 29, 2023*
+
+*  Fix for GHC 8.2+
+*  Fix type of `(%*)`
+*  `minusSNat` fixed
+*  Qualified `cmpNat`
+
 Version 0.4.0.0
 ---------------
 

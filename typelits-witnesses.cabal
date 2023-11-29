@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           typelits-witnesses
-version:        0.4.0.0
+version:        0.4.0.1
 synopsis:       Existential witnesses, singletons, and classes for operations on GHC TypeLits
 description:    This library contains:
                 .
