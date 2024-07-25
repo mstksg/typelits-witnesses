@@ -8,7 +8,7 @@
 
 -- |
 -- Module      : GHC.TypeLits.Compare
--- Copyright   : (c) Justin Le 2016
+-- Copyright   : (c) Justin Le 2024
 -- License     : MIT
 -- Maintainer  : justin@jle.im
 -- Stability   : unstable

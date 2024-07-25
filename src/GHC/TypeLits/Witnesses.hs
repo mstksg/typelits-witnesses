@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ExistentialQuantification #-}
@@ -14,7 +15,7 @@
 
 -- |
 -- Module      : GHC.TypeLits.Witnesses
--- Copyright   : (c) Justin Le 2016
+-- Copyright   : (c) Justin Le 2024
 -- License     : MIT
 -- Maintainer  : justin@jle.im
 -- Stability   : unstable
@@ -84,7 +85,7 @@
 -- not just 'Natural' and 'String'.
 module GHC.TypeLits.Witnesses (
   -- * Nats
-  SNat (..),
+  SNat (SNat),
   SomeNat (SomeNat_),
   Natural (FromSNat),
   fromSNat,
@@ -109,7 +110,7 @@ module GHC.TypeLits.Witnesses (
   unsafeLiftNatOp2,
 
   -- * Symbols
-  SSymbol (..),
+  SSymbol (SSymbol),
   SomeSymbol (SomeSymbol_),
   pattern FromSSymbol,
   fromSSymbol,
@@ -118,18 +119,10 @@ module GHC.TypeLits.Witnesses (
   toSomeSymbol,
 ) where
 
-import Data.GADT.Compare
-import Data.GADT.Show
 import Data.Proxy
 import Data.Type.Equality
 import GHC.Natural
-import GHC.TypeLits (
-  KnownSymbol,
-  SomeSymbol (..),
-  sameSymbol,
-  someSymbolVal,
-  symbolVal,
- )
+import GHC.TypeLits (KnownSymbol, SomeSymbol (..), someSymbolVal, symbolVal)
 import GHC.TypeLits.Compare hiding ((%<=?))
 import qualified GHC.TypeLits.Compare as Comp
 import GHC.TypeNats (
@@ -137,7 +130,6 @@ import GHC.TypeNats (
   KnownNat,
   SomeNat (..),
   natVal,
-  sameNat,
   someNatVal,
   type (*),
   type (+),
@@ -146,6 +138,19 @@ import GHC.TypeNats (
  )
 import Unsafe.Coerce
 
+#if MIN_VERSION_base(4,20,0)
+import GHC.TypeLits (SSymbol, pattern SSymbol)
+import GHC.TypeNats (SNat, pattern SNat)
+#else
+import Data.GADT.Compare
+import Data.GADT.Show
+import GHC.TypeLits (sameSymbol)
+import GHC.TypeNats (sameNat)
+#endif
+
+{-# ANN module "HLint: ignore Use fewer imports" #-}
+
+#if !MIN_VERSION_base(4,20,0)
 -- | An @'SNat' n@ is a witness for @'KnownNat' n@.
 --
 -- This means that if you pattern match on the 'SNat' constructor, in that
@@ -158,6 +163,8 @@ import Unsafe.Coerce
 --
 -- This is essentially a singleton for 'Nat', and stands in for the
 -- /singletons/ 'SNat' and 'Data.Singleton.Sing' types.
+--
+-- Note that this type exists in base as of base 4.18.0 (GHC 9.6)
 data SNat n = KnownNat n => SNat
 
 deriving instance Eq (SNat n)
@@ -181,6 +188,7 @@ instance GEq SNat where
 
 instance GCompare SNat where
   gcompare x = cmpNatGOrdering . sCmpNat x
+#endif
 
 data SomeNat__ = forall n. SomeNat__ (SNat n)
 
@@ -353,6 +361,7 @@ x@SNat %<=? y@SNat = x Comp.%<=? y
 sCmpNat :: SNat n -> SNat m -> SCmpNat n m
 sCmpNat x@SNat y@SNat = GHC.TypeLits.Compare.cmpNat x y
 
+#if !MIN_VERSION_base(4,20,0)
 -- | An @'SSymbol' n@ is a witness for @'KnownSymbol' n@.
 --
 -- This means that if you pattern match on the 'SSymbol' constructor, in that
@@ -365,6 +374,8 @@ sCmpNat x@SNat y@SNat = GHC.TypeLits.Compare.cmpNat x y
 --
 -- This is essentially a singleton for 'Symbol', and stands in for the
 -- /singletons/ 'SSymbol' and 'Data.Singleton.Sing' types.
+--
+-- Note that this type exists in base as of base 4.18.0 (GHC 9.6)
 data SSymbol n = KnownSymbol n => SSymbol
 
 deriving instance Eq (SSymbol n)
@@ -391,6 +402,7 @@ instance GCompare SSymbol where
     LT -> GLT
     EQ -> unsafeCoerce GEQ
     GT -> GGT
+#endif
 
 data SomeSymbol__ = forall n. SomeSymbol__ (SSymbol n)
 
