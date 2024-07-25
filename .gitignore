@@ -5,3 +5,4 @@
 /.ghc.environment.*
 /dist-newstyle
 /.direnv
+/result

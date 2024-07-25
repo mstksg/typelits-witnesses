@@ -1,16 +1,16 @@
-{-# LANGUAGE ConstraintKinds           #-}
-{-# LANGUAGE DataKinds                 #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE FlexibleContexts          #-}
-{-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE LambdaCase                #-}
-{-# LANGUAGE NoStarIsType              #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
-{-# LANGUAGE StandaloneDeriving        #-}
-{-# LANGUAGE TypeOperators             #-}
-{-# LANGUAGE ViewPatterns              #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE NoStarIsType #-}
 
 -- |
 -- Module      : GHC.TypeLits.Witnesses
@@ -84,49 +84,67 @@
 -- not just 'Natural' and 'String'.
 module GHC.TypeLits.Witnesses (
   -- * Nats
-    SNat(..)
-  , SomeNat(SomeNat_)
-  , Natural(FromSNat)
-  , fromSNat
-  , withKnownNat
-  , withSomeNat
-  , toSomeNat
-  -- ** Operations
-  , (%+)
-  , (%-)
-  , minusSNat
-  , minusSNat_
-  , (%*)
-  , (%^)
-  -- ** Compare
-  , (%<=?)
-  , sCmpNat
-  -- ** Unsafe
-  , unsafeLiftNatOp1
-  , unsafeLiftNatOp2
-  -- * Symbols
-  , SSymbol(..)
-  , SomeSymbol(SomeSymbol_)
-  , pattern FromSSymbol
-  , fromSSymbol
-  , withKnownSymbol
-  , withSomeSymbol
-  , toSomeSymbol
-  ) where
+  SNat (..),
+  SomeNat (SomeNat_),
+  Natural (FromSNat),
+  fromSNat,
+  withKnownNat,
+  withSomeNat,
+  toSomeNat,
 
-import           Data.GADT.Compare
-import           Data.GADT.Show
-import           Data.Proxy
-import           Data.Type.Equality
-import           GHC.Natural
-import           GHC.TypeLits ( KnownSymbol, SomeSymbol(..)
-                              , symbolVal, someSymbolVal, sameSymbol )
-import           GHC.TypeLits.Compare hiding ((%<=?))
-import           GHC.TypeNats ( KnownNat, SomeNat(..), CmpNat
-                              , type (+), type (-), type (*), type (^)
-                              , natVal, someNatVal, sameNat )
-import           Unsafe.Coerce
-import qualified GHC.TypeLits.Compare        as Comp
+  -- ** Operations
+  (%+),
+  (%-),
+  minusSNat,
+  minusSNat_,
+  (%*),
+  (%^),
+
+  -- ** Compare
+  (%<=?),
+  sCmpNat,
+
+  -- ** Unsafe
+  unsafeLiftNatOp1,
+  unsafeLiftNatOp2,
+
+  -- * Symbols
+  SSymbol (..),
+  SomeSymbol (SomeSymbol_),
+  pattern FromSSymbol,
+  fromSSymbol,
+  withKnownSymbol,
+  withSomeSymbol,
+  toSomeSymbol,
+) where
+
+import Data.GADT.Compare
+import Data.GADT.Show
+import Data.Proxy
+import Data.Type.Equality
+import GHC.Natural
+import GHC.TypeLits (
+  KnownSymbol,
+  SomeSymbol (..),
+  sameSymbol,
+  someSymbolVal,
+  symbolVal,
+ )
+import GHC.TypeLits.Compare hiding ((%<=?))
+import qualified GHC.TypeLits.Compare as Comp
+import GHC.TypeNats (
+  CmpNat,
+  KnownNat,
+  SomeNat (..),
+  natVal,
+  sameNat,
+  someNatVal,
+  type (*),
+  type (+),
+  type (-),
+  type (^),
+ )
+import Unsafe.Coerce
 
 -- | An @'SNat' n@ is a witness for @'KnownNat' n@.
 --
@@ -146,22 +164,23 @@ deriving instance Eq (SNat n)
 deriving instance Ord (SNat n)
 
 instance Show (SNat n) where
-    showsPrec d x@SNat = showParen (d > 10) $
+  showsPrec d x@SNat =
+    showParen (d > 10) $
       showString "SNat @" . showsPrec 11 (fromSNat x)
 
 instance GShow SNat where
-    gshowsPrec = showsPrec
+  gshowsPrec = showsPrec
 
 instance TestEquality SNat where
-    testEquality (SNat :: SNat n) (SNat :: SNat m) =
-      flip fmap (sameNat (Proxy :: Proxy n) (Proxy :: Proxy m)) $ \case
-        Refl -> Refl
+  testEquality (SNat :: SNat n) (SNat :: SNat m) =
+    flip fmap (sameNat (Proxy :: Proxy n) (Proxy :: Proxy m)) $ \case
+      Refl -> Refl
 
 instance GEq SNat where
-    geq = testEquality
+  geq = testEquality
 
 instance GCompare SNat where
-    gcompare x = cmpNatGOrdering . sCmpNat x
+  gcompare x = cmpNatGOrdering . sCmpNat x
 
 data SomeNat__ = forall n. SomeNat__ (SNat n)
 
@@ -177,6 +196,7 @@ pattern SomeNat_ :: SNat n -> SomeNat
 pattern SomeNat_ x <- ((\case SomeNat (Proxy :: Proxy n) -> SomeNat__ (SNat :: SNat n)) -> SomeNat__ x)
   where
     SomeNat_ (SNat :: SNat n) = SomeNat (Proxy :: Proxy n)
+
 {-# COMPLETE SomeNat_ #-}
 
 -- | A useful pattern synonym for matching on a 'Natural' as if it "were"
@@ -195,6 +215,7 @@ pattern FromSNat :: SNat n -> Natural
 pattern FromSNat x <- ((\i -> withSomeNat i SomeNat_) -> SomeNat_ x)
   where
     FromSNat = fromSNat
+
 {-# COMPLETE FromSNat #-}
 
 -- | Given an @'SNat' n@ and a value that would require a @'KnownNat' n@
@@ -211,7 +232,7 @@ withKnownNat SNat x = x
 --
 -- This stands in the /singletons/ 'Data.Singleton.withSomeSing' function.
 withSomeNat :: Natural -> (forall n. SNat n -> r) -> r
-withSomeNat (someNatVal->SomeNat (Proxy :: Proxy n)) x = x (SNat :: SNat n)
+withSomeNat (someNatVal -> SomeNat (Proxy :: Proxy n)) x = x (SNat :: SNat n)
 
 -- | Promote ("reify") a 'Natural' to an @'SNat' n@ existentially hidden
 -- inside a 'SomeNat'.  To use it, pattern match using 'SomeNat_'.
@@ -239,10 +260,10 @@ fromSNat x@SNat = natVal x
 --
 -- The correctness of the relationship is not checked, so be aware that
 -- this can cause programs to break.
-unsafeLiftNatOp1
-    :: (Natural -> Natural)
-    -> SNat n
-    -> SNat m
+unsafeLiftNatOp1 ::
+  (Natural -> Natural) ->
+  SNat n ->
+  SNat m
 unsafeLiftNatOp1 f x = withSomeNat (f (fromSNat x)) unsafeCoerce
 
 -- | Lift a binary operation to act on an @'SNat' n@ and @'SNat' m@ that
@@ -258,11 +279,11 @@ unsafeLiftNatOp1 f x = withSomeNat (f (fromSNat x)) unsafeCoerce
 --
 -- The correctness of the relationship is not checked, so be aware that
 -- this can cause programs to break.
-unsafeLiftNatOp2
-    :: (Natural -> Natural -> Natural)
-    -> SNat n
-    -> SNat m
-    -> SNat o
+unsafeLiftNatOp2 ::
+  (Natural -> Natural -> Natural) ->
+  SNat n ->
+  SNat m ->
+  SNat o
 unsafeLiftNatOp2 f x y = withSomeNat (f (fromSNat x) (fromSNat y)) unsafeCoerce
 
 -- | Addition of 'SNat's.
@@ -290,13 +311,13 @@ unsafeLiftNatOp2 f x y = withSomeNat (f (fromSNat x) (fromSNat y)) unsafeCoerce
 -- | A safe version of '%-': it will return 'Left' if @n@ is less than @m@
 -- (with a witness that it is), or else return the subtracted 'SNat' in
 -- 'Right' in a way that is guarunteed to not have runtime underflow.
-minusSNat
-    :: SNat n
-    -> SNat m
-    -> Either (CmpNat n m :~: 'LT) (SNat (n - m))
-minusSNat (fromSNat->x) (fromSNat->y) = case minusNaturalMaybe x y of
-    Nothing -> Left (unsafeCoerce Refl)
-    Just z  -> withSomeNat z (Right . unsafeCoerce)
+minusSNat ::
+  SNat n ->
+  SNat m ->
+  Either (CmpNat n m :~: 'LT) (SNat (n - m))
+minusSNat (fromSNat -> x) (fromSNat -> y) = case minusNaturalMaybe x y of
+  Nothing -> Left (unsafeCoerce Refl)
+  Just z -> withSomeNat z (Right . unsafeCoerce)
 
 -- | A version of 'minusSNat' that just returns a 'Maybe'.
 minusSNat_ :: SNat n -> SNat m -> Maybe (SNat (n - m))
@@ -350,25 +371,26 @@ deriving instance Eq (SSymbol n)
 deriving instance Ord (SSymbol n)
 
 instance Show (SSymbol n) where
-    showsPrec d x@SSymbol = showParen (d > 10) $
+  showsPrec d x@SSymbol =
+    showParen (d > 10) $
       showString "SSymbol @" . showsPrec 11 (fromSSymbol x)
 
 instance GShow SSymbol where
-    gshowsPrec = showsPrec
+  gshowsPrec = showsPrec
 
 instance TestEquality SSymbol where
-    testEquality (SSymbol :: SSymbol n) (SSymbol :: SSymbol m) =
-      flip fmap (sameSymbol (Proxy :: Proxy n) (Proxy :: Proxy m)) $ \case
-        Refl -> Refl
+  testEquality (SSymbol :: SSymbol n) (SSymbol :: SSymbol m) =
+    flip fmap (sameSymbol (Proxy :: Proxy n) (Proxy :: Proxy m)) $ \case
+      Refl -> Refl
 
 instance GEq SSymbol where
-    geq = testEquality
+  geq = testEquality
 
 instance GCompare SSymbol where
-    gcompare x y = case compare (fromSSymbol x) (fromSSymbol y) of
-      LT -> GLT
-      EQ -> unsafeCoerce GEQ
-      GT -> GGT
+  gcompare x y = case compare (fromSSymbol x) (fromSSymbol y) of
+    LT -> GLT
+    EQ -> unsafeCoerce GEQ
+    GT -> GGT
 
 data SomeSymbol__ = forall n. SomeSymbol__ (SSymbol n)
 
@@ -381,9 +403,11 @@ data SomeSymbol__ = forall n. SomeSymbol__ (SSymbol n)
 --
 -- This stands in for the /singletons/ 'Data.Singleton.SomeSing' constructor.
 pattern SomeSymbol_ :: SSymbol n -> SomeSymbol
-pattern SomeSymbol_ x <- ((\case SomeSymbol (Proxy :: Proxy n) -> SomeSymbol__ (SSymbol :: SSymbol n)) -> SomeSymbol__ x)
+pattern SomeSymbol_ x <-
+  ((\case SomeSymbol (Proxy :: Proxy n) -> SomeSymbol__ (SSymbol :: SSymbol n)) -> SomeSymbol__ x)
   where
     SomeSymbol_ (SSymbol :: SSymbol n) = SomeSymbol (Proxy :: Proxy n)
+
 {-# COMPLETE SomeSymbol_ #-}
 
 -- | A useful pattern synonym for matching on a 'String' as if it "were"
@@ -403,6 +427,7 @@ pattern FromSSymbol :: SSymbol n -> String
 pattern FromSSymbol x <- ((\i -> withSomeSymbol i SomeSymbol_) -> SomeSymbol_ x)
   where
     FromSSymbol = fromSSymbol
+
 {-# COMPLETE FromSSymbol #-}
 
 -- | Given an @'SSymbol' n@ and a value that would require a @'KnownSymbol' n@
@@ -420,7 +445,7 @@ withKnownSymbol SSymbol x = x
 -- This stands in the /singletons/ 'Data.Singleton.withSomeSing' function, except it takes
 -- a 'String' instead of 'Data.Text.Text'.
 withSomeSymbol :: String -> (forall n. SSymbol n -> r) -> r
-withSomeSymbol (someSymbolVal->SomeSymbol (Proxy :: Proxy n)) x = x (SSymbol :: SSymbol n)
+withSomeSymbol (someSymbolVal -> SomeSymbol (Proxy :: Proxy n)) x = x (SSymbol :: SSymbol n)
 
 -- | Promote ("reify") a 'String' to an @'SSymbol' n@ existentially hidden
 -- inside a 'SomeNat'.  To use it, pattern match using 'SomeSymbol_'.
