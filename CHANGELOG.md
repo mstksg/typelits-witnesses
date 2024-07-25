@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 0.4.1.0
+---------------
+
+<https://github.com/mstksg/typelits-witnesses/releases/tag/v0.4.1.0>
+
+*July 24, 2024*
+
+*  Use the `SSymbol` and `SNat` from *base* on GHC 9.8+
+
 Version 0.4.0.1
 ---------------
 
