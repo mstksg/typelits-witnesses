@@ -12,7 +12,7 @@
     }:
     flake-utils.lib.eachDefaultSystem (system:
     let
-      name = "PACKAGENAME";
+      name = "typelits-witnesses";
       pkgs = import nixpkgs {
         inherit system;
         overlays = [ haskellProjectFlake.overlays."${system}".default ];
@@ -21,7 +21,7 @@
         {
           inherit name;
           src = ./.;
-          excludeCompilerMajors = [ "ghc810" "ghc90" ];
+          excludeCompilerMajors = [];
           defaultCompiler = "ghc982";
         };
     in

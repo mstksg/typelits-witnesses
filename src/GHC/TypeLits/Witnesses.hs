@@ -193,7 +193,7 @@ data SomeNat__ = forall n. SomeNat__ (SNat n)
 --
 -- This stands in for the /singletons/ 'Data.Singleton.SomeSing' constructor.
 pattern SomeNat_ :: SNat n -> SomeNat
-pattern SomeNat_ x <- ((\case SomeNat (Proxy :: Proxy n) -> SomeNat__ (SNat :: SNat n)) -> SomeNat__ x)
+pattern SomeNat_ x <- (\case SomeNat (Proxy :: Proxy n) -> SomeNat__ (SNat :: SNat n) -> SomeNat__ x)
   where
     SomeNat_ (SNat :: SNat n) = SomeNat (Proxy :: Proxy n)
 
@@ -212,7 +212,7 @@ pattern SomeNat_ x <- ((\case SomeNat (Proxy :: Proxy n) -> SomeNat__ (SNat :: S
 --
 -- This stands in for the /singletons/ 'Data.Singleton.FromSing' pattern synonym.
 pattern FromSNat :: SNat n -> Natural
-pattern FromSNat x <- ((\i -> withSomeNat i SomeNat_) -> SomeNat_ x)
+pattern FromSNat x <- ((`withSomeNat` SomeNat_) -> SomeNat_ x)
   where
     FromSNat = fromSNat
 
@@ -404,7 +404,7 @@ data SomeSymbol__ = forall n. SomeSymbol__ (SSymbol n)
 -- This stands in for the /singletons/ 'Data.Singleton.SomeSing' constructor.
 pattern SomeSymbol_ :: SSymbol n -> SomeSymbol
 pattern SomeSymbol_ x <-
-  ((\case SomeSymbol (Proxy :: Proxy n) -> SomeSymbol__ (SSymbol :: SSymbol n)) -> SomeSymbol__ x)
+  (\case SomeSymbol (Proxy :: Proxy n) -> SomeSymbol__ (SSymbol :: SSymbol n) -> SomeSymbol__ x)
   where
     SomeSymbol_ (SSymbol :: SSymbol n) = SomeSymbol (Proxy :: Proxy n)
 
@@ -424,7 +424,7 @@ pattern SomeSymbol_ x <-
 -- This stands in for the /singletons/ 'Data.Singleton.FromSing' pattern synonym, except
 -- it matches on a 'String' instead of a 'Data.Text.Text'.
 pattern FromSSymbol :: SSymbol n -> String
-pattern FromSSymbol x <- ((\i -> withSomeSymbol i SomeSymbol_) -> SomeSymbol_ x)
+pattern FromSSymbol x <- ((`withSomeSymbol` SomeSymbol_) -> SomeSymbol_ x)
   where
     FromSSymbol = fromSSymbol
 
